@@ -20,23 +20,55 @@ import time
 # Takes in serial port, duration, constant value, and file name
 # Writes the Serial output to specified file name and appends the
 # Constant specified
-def data_read(port, dur, const, file):
+def data_read(dur, const, file):
+    ser = serial.Serial('COM4', 9600, timeout=2)
+    # Give Arduino time to warm up -> Resets every time serial line is opened
+    print("Loading...")
+    time.sleep(1.5)
     t_end = time.time() + dur
+    print("Gathering data now!")
     while time.time() < t_end:
         try:
-            data = port.readline()
+            data = ser.readline()
             decoded_data = data.decode('utf-8')
             file.write(const + decoded_data)
             print(const, decoded_data)
             time.sleep(.4)
-        except port.SerialTimeoutException:
+        except ser.SerialTimeoutException:
             print('Data could not be read.')
+    # Close the file and port after use
     file.close()
+    ser.close()
 
 
-# Retrieve the data from the Arduino
+# Function that occurs after the test is finished; returns response of the user if they want to
+# Repeat the test or end it. Returns True if rerun. Retruns False if they want to end the test
+def next_action(file_name):
+    response = input("Do you want to see the results? (Y/N)")
+    if response == "Y":
+        f = open("%s" % file_name + ".txt", "r")
+        fl = f.readlines()
+        for x in fl:
+            print(x)
+        f.close()
+        response = input("Do you want to rerun this script? (Y/N)")
+        if response == "Y":
+            return True
+        else:
+            return main()
+    elif response == "N":
+        response = input("Do you want to rerun this script? (Y/N)")
+        if response == "Y":
+            return True
+        else:
+            return main()
+
+
+# Retrieve the data from the Arduino for the Proximity sensors
+# We will use the correlation between the read value and specified distance to
+# Derive an appropriate function to calculate the distance to proximity sensor
 def data_retrieve_prox():
-    # Determine the user input: Name, Duration, distance
+    # Determine the user input: Test name, Duration, distance, and a short summary of the test
     name = input("What is the test/file name?: \n")
     sec = int(input("Test duration(s): \n"))
     dis = input("Distance (cm): \n")
@@ -45,26 +77,36 @@ def data_retrieve_prox():
 
     # Create or open the specified file
     with open("%s" % name + ".txt", "a+") as file:
-        ser = serial.Serial('COM4', 9600, timeout=2)
-        # Give Arduino time to warm up -> Resets every time serial line is open
-        print("Loading...")
-        time.sleep(1.5)
         file.write(summary + "\n")
         file.write("File name: %s, Duration: %i, Distance: %s \n" % (name, sec, dis))
-        print("Gathering data now!")
         # Gather data
-        data_read(ser, sec, dis, file)
-    # Ask User if they want to see data
-    nxt = input("Do you want to see the results? (Y/N)")
-    if nxt == "Y":
-        f = open("%s" % name + ".txt", "r")
-        fl = f.readlines()
-        for x in fl:
-            print(x)
-        f.close()
-        return main()
-    elif nxt == "N":
-        return main()
+        data_read(sec, dis, file)
+    # Ask User if they want to see data / repeat the test
+    if next_action(name) is True:
+        return data_retrieve_prox()
+
+
+# Retrieve the data from the Arduino for the Accelerometer
+# We will use this data to determine how the resolution affects
+# The data readings from the sensor and how to best determine collisions
+# / differentiate them from accelerations. Gathers data in meters/ (sec ^ 2)
+def data_retrieve_accel():
+    # Determine the user input: Test name, Duration, resolution, and a short summary of the test
+    name = input("What is the test/file name?: \n")
+    sec = int(input("Test duration(s): \n"))
+    res = input("Resolution of the sensor (2,4,8): \n")
+    summary = input("Please write a small description of the test. "
+                    "Leave blank if appending to existing file): \n")
+
+    # Create or open the specified file
+    with open("%s" % name + ".txt", "a+") as file:
+        file.write(summary + "\n")
+        file.write("File name: %s, Duration: %i, Resolution: %s \n" % (name, sec, res))
+        # Gather data
+        data_read(sec, res, file)
+    # Ask user if they want to see data / Repeat the test
+    if next_action(name) is True:
+        return data_retrieve_accel()
 
 
 # Home screen that asks the user what they want to do
@@ -79,8 +121,7 @@ def main():
         if res == "1":
             data_retrieve_prox()
         elif res == "2":
-            print("sorry this isn't ready yet!")
-            return main()
+            data_retrieve_accel()
     if res == "2":
         print("Sorry this isn't ready yet!")
         return main()

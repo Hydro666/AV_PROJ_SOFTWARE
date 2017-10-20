@@ -14,6 +14,7 @@
 
 import serial
 import time
+import sys
 
 
 # Read the incoming data from the Serial Port every 400 ms.
@@ -64,67 +65,49 @@ def next_action(file_name):
             return main()
 
 
-# Retrieve the data from the Arduino for the Proximity sensors
-# We will use the correlation between the read value and specified distance to
-# Derive an appropriate function to calculate the distance to proximity sensor
-def data_retrieve_prox():
+# Retrieve the data from the Arduino for the Sensors and store it to a text file
+def data_retrieve():
+    user = input("Do you want to test the proximity sensor or accelerometer? (1/2): \n")
     # Determine the user input: Test name, Duration, distance, and a short summary of the test
     name = input("What is the test/file name?: \n")
     sec = int(input("Test duration(s): \n"))
-    dis = input("Distance (cm): \n")
+
+    if user == "1":
+        const = input("Distance (cm): \n")
+    elif user == "2":
+        const = input("Resolution of the sensor (2,4,8): \n")
+
     summary = input("Please write a small description of the test."
-                    "(Leave blank if appending to existing file):  \n")
+                    "Leave blank if appending to existing file):  \n")
 
     # Create or open the specified file
     with open("%s" % name + ".txt", "a+") as file:
         file.write(summary + "\n")
-        file.write("File name: %s, Duration: %i, Distance: %s \n" % (name, sec, dis))
+        if user == "1":
+            file.write("File name: %s, Duration: %i, Distance: %s \n" % (name, sec, const))
+        elif user == "2":
+            file.write("File name: %s, Duration: %i, Resolution: %s \n" % (name, sec, const))
         # Gather data
-        data_read(sec, dis, file)
+        data_read(sec, const, file)
     # Ask User if they want to see data / repeat the test
     if next_action(name) is True:
-        return data_retrieve_prox()
-
-
-# Retrieve the data from the Arduino for the Accelerometer
-# We will use this data to determine how the resolution affects
-# The data readings from the sensor and how to best determine collisions
-# / differentiate them from accelerations. Gathers data in meters/ (sec ^ 2)
-def data_retrieve_accel():
-    # Determine the user input: Test name, Duration, resolution, and a short summary of the test
-    name = input("What is the test/file name?: \n")
-    sec = int(input("Test duration(s): \n"))
-    res = input("Resolution of the sensor (2,4,8): \n")
-    summary = input("Please write a small description of the test. "
-                    "Leave blank if appending to existing file): \n")
-
-    # Create or open the specified file
-    with open("%s" % name + ".txt", "a+") as file:
-        file.write(summary + "\n")
-        file.write("File name: %s, Duration: %i, Resolution: %s \n" % (name, sec, res))
-        # Gather data
-        data_read(sec, res, file)
-    # Ask user if they want to see data / Repeat the test
-    if next_action(name) is True:
-        return data_retrieve_accel()
+        return data_retrieve()
 
 
 # Home screen that asks the user what they want to do
 def main():
     print("What do you want to do?\n"
           "1. Gather data\n" 
-          "2. Analyze data")
-    res = input("(1,2): ")
+          "2. Analyze data\n"
+          "3. Exit")
+    res = input("(1,2,3): ")
     if res == "1":
-        res = input("For which sensor?\n1. Proximity\n"
-                    "2. Accelerometer\n")
-        if res == "1":
-            data_retrieve_prox()
-        elif res == "2":
-            data_retrieve_accel()
-    if res == "2":
+        data_retrieve()
+    elif res == "2":
         print("Sorry this isn't ready yet!")
         return main()
+    elif res == "3":
+        sys.exit()
 
 
 main()

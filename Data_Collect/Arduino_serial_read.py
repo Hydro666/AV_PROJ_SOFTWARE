@@ -46,22 +46,22 @@ def data_read(dur, const, file):
 # Repeat the test or end it. Returns True if rerun. Retruns False if they want to end the test
 def next_action(file_name):
     response = input("Do you want to see the results? (Y/N)")
-    if response == "Y":
+    if response == "Y" or "y":
         f = open("%s" % file_name + ".txt", "r")
         fl = f.readlines()
-        for x in fl:
-            print(x)
+        for i in fl:
+            print(i)
         f.close()
         response = input("Do you want to rerun this script? (Y/N)")
-        if response == "Y":
+        if response == "Y" or "y":
             return True
-        else:
+        elif response == "N" or "n":
             return main()
-    elif response == "N":
+    elif response == "N" or "n":
         response = input("Do you want to rerun this script? (Y/N)")
-        if response == "Y":
+        if response == "Y" or "y":
             return True
-        else:
+        elif response == "N" or "n":
             return main()
 
 

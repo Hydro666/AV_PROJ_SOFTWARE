@@ -12,9 +12,12 @@
  Created for solely educational purposes
  """
 
-import serial
-import time
 import sys
+import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import serial
 
 
 # Read the incoming data from the Serial Port every 400 ms.
@@ -43,25 +46,25 @@ def data_read(dur, const, file):
 
 
 # Function that occurs after the test is finished; returns response of the user if they want to
-# Repeat the test or end it. Returns True if rerun. Retruns False if they want to end the test
+# Repeat the test or end it. Returns True if rerun. Returns False if they want to end the test
 def next_action(file_name):
     response = input("Do you want to see the results? (Y/N)")
-    if response == "Y" or "y":
+    if response == "Y":
         f = open("%s" % file_name + ".txt", "r")
         fl = f.readlines()
         for i in fl:
             print(i)
         f.close()
         response = input("Do you want to rerun this script? (Y/N)")
-        if response == "Y" or "y":
+        if response == "Y":
             return True
-        elif response == "N" or "n":
+        elif response == "N":
             return main()
-    elif response == "N" or "n":
+    elif response == "N":
         response = input("Do you want to rerun this script? (Y/N)")
-        if response == "Y" or "y":
+        if response == "Y":
             return True
-        elif response == "N" or "n":
+        elif response == "N":
             return main()
 
 
@@ -94,6 +97,45 @@ def data_retrieve():
         return data_retrieve()
 
 
+# Analyze the data and plot it for visual representation
+def analyze():
+    # The first step is to read the data we obtained and to store it inside of an array
+    # For analysis. We do not want to modify the data so we will use it in read mode.
+    # Open the file to analyze in read mode and convert it into an array of usable numbers
+    # TODO: Find a way to include data from multiple files
+
+    file_name = input("What is the file called?: \n")
+    with open("%s" % file_name + ".txt", "r") as f:
+        # We skip the first two lines as they contain the description and the title
+        next(f)
+        next(f)
+        y_points = []
+        x_points = []
+        for line in f:
+            # Deal with the comma
+            line = line.split(",")
+            if line:
+                x, y = [int(i) for i in line]
+                x_points.append(x)
+                y_points.append(y)
+        # Convert the list into an array of usable numbers
+        y_points = np.asarray(y_points)
+        x_points = np.asarray(x_points)
+        # Plot the data into a graph after finding the limits of the graph
+        plot_limits = input("What are the limits of the graph?(comma included plz) [x_min, x_max, y_min, y_max]\n")
+        plot_limits = plot_limits.split(",")
+        if plot_limits:
+            x_min, x_max, y_min, y_max = [int(i) for i in plot_limits]
+            plt.plot(x_points, y_points, 'ro')
+            plt.axis([x_min, x_max, y_min, y_max])
+            plt.show()
+            ans = input("Do you want to exit? (Y/N)")
+            if ans == "Y":
+                sys.exit()
+            if ans == "N":
+                return main()
+
+
 # Home screen that asks the user what they want to do
 def main():
     print("What do you want to do?\n"
@@ -104,8 +146,7 @@ def main():
     if res == "1":
         data_retrieve()
     elif res == "2":
-        print("Sorry this isn't ready yet!")
-        return main()
+        analyze()
     elif res == "3":
         sys.exit()
 

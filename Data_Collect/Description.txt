@@ -1,0 +1,3 @@
+This houses a simple program that gathers data from two IR sensors and an accelerometer. 
+It then allows the user to plot the data and find the correlation between the data points. 
+Finally it provides the best fit function for the IR sensors to accurately calculate distance. 

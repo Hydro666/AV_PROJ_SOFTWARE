@@ -35,7 +35,7 @@ def data_read(dur, const, file):
         try:
             data = ser.readline()
             decoded_data = data.decode('utf-8')
-            file.write(const + decoded_data)
+            file.write(const + "," + decoded_data)
             print(const, decoded_data)
             time.sleep(.4)
         except ser.SerialTimeoutException:
@@ -86,10 +86,6 @@ def data_retrieve():
     # Create or open the specified file
     with open("%s" % name + ".txt", "a+") as file:
         file.write(summary + "\n")
-        if user == "1":
-            file.write("File name: %s, Duration: %i, Distance: %s \n" % (name, sec, const))
-        elif user == "2":
-            file.write("File name: %s, Duration: %i, Resolution: %s \n" % (name, sec, const))
         # Gather data
         data_read(sec, const, file)
     # Ask User if they want to see data / repeat the test
@@ -97,21 +93,27 @@ def data_retrieve():
         return data_retrieve()
 
 
+# Removes all the blank lines.
+def nonblank_lines(f):
+    for l in f:
+        line = l.rstrip()
+        if line:
+            yield line
+
+
 # Analyze the data and plot it for visual representation
 def analyze():
     # The first step is to read the data we obtained and to store it inside of an array
     # For analysis. We do not want to modify the data so we will use it in read mode.
     # Open the file to analyze in read mode and convert it into an array of usable numbers
-    # TODO: Find a way to include data from multiple files
 
     file_name = input("What is the file called?: \n")
     with open("%s" % file_name + ".txt", "r") as f:
         # We skip the first two lines as they contain the description and the title
         next(f)
-        next(f)
         y_points = []
         x_points = []
-        for line in f:
+        for line in nonblank_lines(f):
             # Deal with the comma
             line = line.split(",")
             if line:
@@ -122,18 +124,14 @@ def analyze():
         y_points = np.asarray(y_points)
         x_points = np.asarray(x_points)
         # Plot the data into a graph after finding the limits of the graph
-        plot_limits = input("What are the limits of the graph?(comma included plz) [x_min, x_max, y_min, y_max]\n")
+        plot_limits = input("What are the limits of the graph?(comma included please) [x_min, x_max, y_min, y_max]\n")
         plot_limits = plot_limits.split(",")
         if plot_limits:
             x_min, x_max, y_min, y_max = [int(i) for i in plot_limits]
             plt.plot(x_points, y_points, 'ro')
             plt.axis([x_min, x_max, y_min, y_max])
             plt.show()
-            ans = input("Do you want to exit? (Y/N)")
-            if ans == "Y":
-                sys.exit()
-            if ans == "N":
-                return main()
+        # TODO: Find function that matches data points
 
 
 # Home screen that asks the user what they want to do

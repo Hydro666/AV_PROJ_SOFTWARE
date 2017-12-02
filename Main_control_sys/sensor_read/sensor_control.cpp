@@ -10,6 +10,22 @@
 // input voltage (7V) by the steps avaiable (1024). 
 double vol_convert = .0068359375; 
 
+// Pins 
+int far = A8; 
+int close = A9; 
+
+// IR sensor calibration values 
+double c1_c = 0.00;
+double c2_c = 3.64;
+double c1_f = 1.97;
+double c2_f = 3.49;
+
+// Sets up the pins values and sets them as inputs 
+int ir_pin_setup() {
+	pinMode(far, INPUT);
+	pinMode(close, INPUT);
+}
+
 // Check to see if there are previously calibrated values. Returns TRUE if there are
 // previously calibrated values. 
 bool is_previously_calibrated(double c1_c, double c2_c, double c1_f, double c2_f)
@@ -95,8 +111,9 @@ double get_cal_val(int pin, int duration) {
 
 // Function that calibrates for the ambient light in the room. This is only run during 
 // the first time setup within a new environment. This function assigns the calibrated 
-// values to each variable input for the respective sensor (close->pin, far->pin_2)
-float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, int pin, int pin_2) {
+// values to each variable input for the respective sensor
+float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, 
+	int close, int far) {
 	// Read values from the sensor for a 'long time' to get more consistent readings
 	// averaging out the readings to get a consistent value 
 	int duration = 1000;
@@ -104,85 +121,78 @@ float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, int pin,
 	// Get calibration value for the close range sensor (object far away from sensor) 
 	Serial.print("Calibration for the close range sensor! Place an item far from the sensor"
 		"(~150 cm away)");
-	c1_c = get_cal_val(pin, duration);
+	c1_c = get_cal_val(close, duration);
 
 	// Get calibration value for the close range sensor (object near sensor) 
 	Serial.print("Calibration for close range sensor! Place an item near the sensor! (~20 cm away)\n");
-	c2_c = get_cal_val(pin, duration);
+	c2_c = get_cal_val(close, duration);
 
 	// Get calibration value for the long range sensor (object far from sensor)
 	Serial.print("Calibration for the long range sensor! Place an item far from the sensor! (~550 cm away)\n");
-	c1_f = get_cal_val(pin_2, duration);
+	c1_f = get_cal_val(far, duration);
 
 	// Get calibration value for the long range sensor (object near sensor) 
 	Serial.print("Calibration for the long range sensor! Place an item near the sensor! (~100 cm away)\n");
-	c2_f = get_cal_val(pin_2, duration);
+	c2_f = get_cal_val(far, duration);
 
 	// Check to see if any of the values of the second sensor
 	// are zero as this means there must have been an error 
 	if ((c1_f == 0) || (c2_f == 0)) {
-		throw "Error!"; 
+		Serial.print("Error!"); 
 	}
+	write_to_memory(c1_c, c2_c, c1_f, c2_f);
+	print_values(c1_c, c2_c, c1_f, c2_f);
 }
 
-// Function that obtains the approximate distance from the close range sensor. We average out from a number of  
-// readings to obtain a more consistent result. The number of readings can be tweaked to increase 
-// performance or to make the reading more accurate. Returns current distance value from the close range sensor 
-double read_distance_close(double c1_c, double c2_c, int pin, int readings = 5) {
+// Function that obtains the approximate distance from the close range sensor.
+// We average out from a number of readings to obtain a more consistent result. 
+// The number of readings can be tweaked to increase performance or to make 
+// the reading more accurate. Returns current distance value from the close range sensor 
+double read_distance_close(int readings) {
 	double cumulative_value = 0; 
 	double volt_read; 
 	double current_distance; 
-	int i; 
 
 	// Obtain the readings
-	for (i = 0; i < readings; i++) {
+	for (int i = 0; i < readings; i++) {
 		delay(20);
-		cumulative_value += analogRead(pin);
+		cumulative_value += analogRead(close);
 	}
 
 	// The distance is calculated using data points from the GP2Y0A02YK data sheet
 	// This equation relates the distance vs the voltage reading. This is a power function with 
 	// an R^2 value == .9961
-	// We scale the values we read between .2 V and 3 V as these are the absolute minimums (per datasheet),
-	// utilizing the calibrated values to account for ambient lighting 
+	// We scale the values we read between .2 V and 3 V as these are the absolute minimums 
+	// (per datasheet), utilizing the calibrated values to account for ambient lighting 
 	volt_read = map((cumulative_value / readings)*vol_convert , c1_c, c2_c, 0.2, 3.0); 
 	current_distance = 62.1418 * pow(volt_read, -1.115);
-	
-	// Check to see if the value is within range if out of range, we return 1 
-	if ((current_distance > 150.00) || (current_distance < 20.00)) {
-		return Serial.print("Out of range");
-	}
-	else {
-		return current_distance; 
-	}
+
+	return current_distance; 
 }
 
-// Function that obtains the approximate distance of the long range sensor. We average our readings to obtain 
-// a more consistent result. The number of readings can be tweaked to increase performance or to make the 
+// Function that obtains the approximate distance of the long range sensor. 
+// We average our readings to obtain a more consistent result. The number 
+// of readings can be tweaked to increase performance or to make the 
 // readings more accurate. Returns current distance value from long range sensor
-double read_distance_far(double c1_f, double c2_f, int pin, int readings = 5) {
+double read_distance_far(int readings) {
 	double cumulative_value = 0; 
 	double volt_read; 
 	double current_distance; 
-	int i; 
 
 	// Obtain the readings 
-	for (i = 0; i < readings; i++) {
+	for (int i = 0; i < readings; i++) {
 		delay(20);
-		cumulative_value += analogRead(pin);
+		cumulative_value += analogRead(far);
 	}
 
-	// The distance is calcualted from the GP2Y0A710K0F data sheet. Power function with R^2 == .973
-	// Readings are scaled between 1V and 3.5V as these are the absolute minimums and maximums respectively (datasheet)
-	// utilizing the calibrated values to account for ambient lighting 
+	// The distance is calcualted from the GP2Y0A710K0F data sheet. Power function with
+	// R^2 == .973 Readings are scaled between 1V and 3.5V as these are the absolute 
+	// minimums and maximums respectively (datasheet) utilizing the calibrated values 
+	// to account for ambient lighting 
 	volt_read = map((cumulative_value / readings) * vol_convert, c1_f, c2_f, 1.0, 3.5); 
 	current_distance = 1199.55 * pow(volt_read, -2.833); 
 
-	// Check if reading is within range if out of range, we return 3
-	if ((current_distance > 550.00) || (current_distance < 100.00)) {
-		return Serial.print("Out of range"); 
-	}
-	else {
-		return current_distance; 
-	}
+	return current_distance;
+	
 }
+

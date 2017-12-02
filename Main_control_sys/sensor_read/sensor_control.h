@@ -16,11 +16,17 @@
 
 #include <math.h>
 #include <EEPROM.h>
+#include <Adafruit_MMA8451.h>
+#include <Adafruit_Sensor.h>
+#include <Wire.h>
+
+//Sets up pins 
+int ir_pin_setup(); 
 
 // Checks if the sensors have been previously calibrated 
 bool is_previously_calibrated(double c1_c, double c2_c, double c1_f, double c2_f); 
 
-// Reads values
+// Prints values
 double print_values(double c1_c, double c2_c, double c1_f, double c2_f);
 
 // Delays x seconds 
@@ -30,12 +36,16 @@ void delay_x_secs(int x);
 void write_to_memory(double c1_c, double c2_c, double c1_f, double c2_f); 
 
 // Calibrates both the IR sensors and assigns calibration values 
-float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, int pin, int pin_2);
+float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, int pin,
+	int pin_2);
 
-// Reads the distance from the GP2Y0A02YK sensor and returns the approximate distance in cm 
-double read_distance_close(double c1_c, double c2_c, int pin, int readings = 5);
+// Reads the distance from the GP2Y0A02YK sensor and returns the approximate 
+// distance in cm 
+double read_distance_close(int readings);
 
-// Reads the distance from the GP2Y0A710K0F sensor and returns the approximate distance in cm
-double read_distance_far(double c1_f, double c2_f, int pin, int readings = 5); 
+// Reads the distance from the GP2Y0A710K0F sensor and returns the approximate 
+// distance in cm
+double read_distance_far(int readings); 
+
 
 #endif

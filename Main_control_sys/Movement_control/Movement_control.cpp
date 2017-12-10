@@ -34,28 +34,6 @@ void motor_setup(int start_speed) {
 	r_l->run(RELEASE);
 }
 
-// Checks to see if we have to begin stopping, taking in the distance 
-// Returns TRUE if we have to begin to stop for either one of two conditions: 
-// TODO: 1. We are approaching an obstacle and must begin stopping to not collide 
-// TODO: 2. We approaching the target distance and must begin slowing to approach
-// target
-bool stop_collision() {
-	// Check to see if we are approaching a collision with an object 
-	// Keeping a buffer of at least 5 cm 
-
-	
-	// TODO: Until the short range sensor is implemented, 
-	// this check only ensures that a buffer of 20 cm is maintained. 
-	double read;
-	read = read_distance_close(4);
-	if(read < 21.00) {
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 // Accelerates the motors forward to a specified speed 
 int motor_accel_fwd(int& speed, int& advancement) {
 	// If we're starting from stopped

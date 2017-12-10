@@ -23,11 +23,6 @@
 // Motor setup 
 void motor_setup(int start_speed);
 
-// Checks to see if we must perform an immediate stop due to buffer violation 
-bool stop_collision();
-
-// Check to see if we have to stop due to approaching target distance 
-
 // Accelerates the motors forward to a specified speed 
 int motor_accel_fwd(int& speed, int& advancement); 
 

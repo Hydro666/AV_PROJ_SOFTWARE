@@ -20,32 +20,44 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 
-//Sets up pins 
-int ir_pin_setup(); 
 
-// Checks if the sensors have been previously calibrated 
-bool is_previously_calibrated(double c1_c, double c2_c, double c1_f, double c2_f); 
+// Analog sensor control 
+class IR_SENSOR {
 
-// Prints values
-double print_values(double c1_c, double c2_c, double c1_f, double c2_f);
+private: 
+	double c0;			// These are the calibration values for the senor 
+	double c1;
+	double volt_convert;
+	int sensor; 
 
-// Delays x seconds 
-void delay_x_secs(int x);
+	
+public: 
 
-// Write to EEPROM
-void write_to_memory(double c1_c, double c2_c, double c1_f, double c2_f); 
+	// Functions
+	void pin_setup(int pin, double volt);
 
-// Calibrates both the IR sensors and assigns calibration values 
-float calibrate(double& c1_c, double& c2_c, double& c1_f, double& c2_f, int pin,
-	int pin_2);
+	// Calibrate: 0 if we want to calibrate
+	// 1 if we don't (close), 2 if we don't (far)
+	void calibrate(int n);
 
-// Reads the distance from the GP2Y0A02YK sensor and returns the approximate 
-// distance in cm 
-double read_distance_close(int readings);
+	// Read sensor values
+	double read_close();
+	double read_far();
 
-// Reads the distance from the GP2Y0A710K0F sensor and returns the approximate 
-// distance in cm
-double read_distance_far(int readings); 
+};
 
+// Digital sensor control
+class DIGI_SENSOR {
+
+private: 
+	int sensor; 
+
+public: 
+	void pin_setup(int pin); 
+
+	// Returns TRUE if an object is detected in front of the 
+	// sensor 
+	bool ObjectIsDetectedToClose(); 
+};
 
 #endif

@@ -11,27 +11,29 @@
 #include <sensor_control.h>
 #include <Movement_control.h>
 
+// Pins: 
+// close =  A9
+// Far = A8
+// rear close = 42
+// farward close = 44
+
+// Initial system setup  
+// Define the pins used for input 
+IR_SENSOR close;
+IR_SENSOR far;
+DIGI_SENSOR fwd;
+DIGI_SENSOR rear;
+double test = 0.00;
 void setup() {
-	// Sensor and motor setup
-	ir_pin_setup(); 
-	motor_setup(50);
-	// Communication set up
-	Serial.begin(9600);
+	// Begin
+	Serial.begin(9600); 
+	close.pin_setup(A9, 6.8); 
+	far.pin_setup(A8, 6.8); 
+	
+	// Calibration 
+	close.calibrate(1); 
+	far.calibrate(2); 
 
-	/* TODO: Include way to store calibrated values. This will make it faster to test the 
-	robot if we are satisfied with the sensor calibraion. For testing purposes, the calibrated 
-	values were obtained through testing and are implemented manually. This will eventually be 
-	implemented with a harware implement (likely a switch) and with an LCD screen to display the 
-	current calibration step and returns the calibrated values 
-
-	// Check if the robot has been previously calibrated
-	if (is_previously_calibrated(c1_c, c2_c, c1_f, c2_f)) {
-		print_values(c1_c, c2_c, c1_f, c2_f);
-	}
-	else {
-		calibrate(c1_c, c2_c, c1_f, c2_f, CLOSE, FAR);
-	}
-	*/
 }
 
 // The main function that executes the logic 
@@ -44,5 +46,12 @@ void loop() {
 	// to collide with an object 
 
 	// For testing purposes: 
-	// print the values read to determine how to effectively use stop_collision 
+	// Test 1: 
+	// REad the distance values from the sensor and display the results; assuming 
+	// ideal conditions 
+	test = close.read_close(); 
+	Serial.print("Test calcuation: "); 
+	Serial.print(test); 
+	Serial.println(); 
+	delay(1000); 
 }

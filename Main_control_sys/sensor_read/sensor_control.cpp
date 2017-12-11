@@ -125,7 +125,7 @@ void DIGI_SENSOR::pin_setup(int pin) {
 
 // Checks to see if an object is detected by the very close range sensor
 // Returns TRUE if an object is detected. 
-bool DIGI_SENSOR::ObjectIsDetectedToClose() {
+bool DIGI_SENSOR::ObjectIsToClose() {
 	int val = 0;
 	val = digitalRead(sensor);
 	if (val == 1) {

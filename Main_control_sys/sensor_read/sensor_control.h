@@ -57,7 +57,7 @@ public:
 
 	// Returns TRUE if an object is detected in front of the 
 	// sensor 
-	bool ObjectIsDetectedToClose(); 
+	bool ObjectIsToClose(); 
 };
 
 #endif

@@ -20,13 +20,26 @@
 #include <Adafruit_Sensor.h>
 #include <sensor_control.h>
 
-// Motor setup 
-void motor_setup(int start_speed);
+// Navigation has a way point, has a direction, has a movement 
 
-// Accelerates the motors forward to a specified speed 
-int motor_accel_fwd(int& speed, int& advancement); 
+// Movement has a motor
+class MOVEMENT{
+private:
+	int advancement; 
+	Adafruit_MotorShield AFMS;
+	Adafruit_DCMotor *f_r; 
+	Adafruit_DCMotor *f_l; 
+	Adafruit_DCMotor *r_r; 
+	Adafruit_DCMotor *r_l; 
 
-// Cuts power to motors in case of imminent collison 
-int emergency_stop(int& advancement, int& speed);
+public:
+	// Motor setup 
+	void motor_setup(int start_speed);
+	// Accelerates the motors forward to a specified speed or keeps current
+	// current movement 
+	void motor_accel_fwd(int speed);
+	// Applies brakes in case of a possible collision detection
+	void emergency_brake(int& speed);
+};
 
 #endif

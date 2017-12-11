@@ -23,13 +23,15 @@ IR_SENSOR close;
 IR_SENSOR far;
 DIGI_SENSOR fwd;
 DIGI_SENSOR rear;
-double test = 0.00;
+
 void setup() {
 	// Begin
 	Serial.begin(9600); 
 	close.pin_setup(A9, 6.8); 
 	far.pin_setup(A8, 6.8); 
-	
+	fwd.pin_setup(44); 
+	rear.pin_setup(42); 
+
 	// Calibration 
 	close.calibrate(1); 
 	far.calibrate(2); 
@@ -47,11 +49,7 @@ void loop() {
 
 	// For testing purposes: 
 	// Test 1: 
-	// REad the distance values from the sensor and display the results; assuming 
-	// ideal conditions 
-	test = close.read_close(); 
-	Serial.print("Test calcuation: "); 
-	Serial.print(test); 
-	Serial.println(); 
-	delay(1000); 
+	// Move the robot forwards until a collision might occur, then stop 
+
+
 }

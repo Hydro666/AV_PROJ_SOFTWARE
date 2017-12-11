@@ -7,15 +7,17 @@
 
 #include "Movement_control.h"
 
-// Motor control objects 
-Adafruit_MotorShield AFMS = Adafruit_MotorShield();
-Adafruit_DCMotor *f_r = AFMS.getMotor(1);
-Adafruit_DCMotor *f_l = AFMS.getMotor(4);
-Adafruit_DCMotor *r_r = AFMS.getMotor(2);
-Adafruit_DCMotor *r_l = AFMS.getMotor(3);
 
 // Executes all necessary setup values for the motors and sets a start speed 
-void motor_setup(int start_speed) {
+void MOVEMENT::motor_setup(int start_speed) {
+	// Motor control 
+	// Motor control objects 
+	AFMS = Adafruit_MotorShield(); 
+	f_r = AFMS.getMotor(1);
+	f_l = AFMS.getMotor(4);
+	r_r = AFMS.getMotor(2);
+	r_l = AFMS.getMotor(3);
+
 	// Motor control setup 
 	AFMS.begin();
 	f_r->setSpeed(start_speed);
@@ -35,7 +37,7 @@ void motor_setup(int start_speed) {
 }
 
 // Accelerates the motors forward to a specified speed 
-int motor_accel_fwd(int& speed, int& advancement) {
+void MOVEMENT::motor_accel_fwd(int speed) {
 	// If we're starting from stopped
 	if (advancement == 0) {
 		f_r->run(FORWARD);
@@ -61,7 +63,7 @@ int motor_accel_fwd(int& speed, int& advancement) {
 }
 
 // Cuts power to motors in case of imminent collison 
-int emergency_stop(int& advancement, int& speed) {
+void MOVEMENT::emergency_brake(int& speed) {
 	// Cuts power to motors 
 	f_r->run(RELEASE);
 	f_l->run(RELEASE);
@@ -85,6 +87,5 @@ int emergency_stop(int& advancement, int& speed) {
 	r_r->setSpeed(0);
 	r_l->setSpeed(0);
 
-	speed = 0; 
 	advancement = 0; 
 }

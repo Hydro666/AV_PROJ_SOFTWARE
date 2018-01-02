@@ -1,19 +1,17 @@
 /*
- Name:		sensor_read.cpp
+ Name:		sensor_control.cpp
  Created:	11/14/2017 9:18:13 PM
  Author:	Aquiles Gomez
 */
 
 #include "sensor_control.h"
 
-
-void IR_SENSOR::pin_setup(int pin, double volt) {
-	sensor = pin;
+void IR_SENSOR::ir_begin(int pin, double volt) {
+	sensor = pin; 
 	volt_convert = volt / 1024; 
-	pinMode(sensor, INPUT);
+	pinMode(sensor, INPUT); 
 }
 
-// IR Sensor calibration 
 void IR_SENSOR::calibrate(int n) {
 
 	// Starts calibration process 
@@ -69,10 +67,6 @@ void IR_SENSOR::calibrate(int n) {
 	}
 }
 
-// Function that obtains the approximate distance from the close range sensor.
-// We average out from a number of readings to obtain a more consistent result. 
-// The number of readings can be tweaked to increase performance or to make 
-// the reading more accurate. Returns current distance value from the close range sensor 
 double IR_SENSOR::read_close() {
 	double cumulative_value = 0;  
 	double cal_value;
@@ -94,10 +88,6 @@ double IR_SENSOR::read_close() {
 	return (62.1418 * pow(cal_value, -1.115));
 }
 
-// Function that obtains the approximate distance of the long range sensor. 
-// We average our readings to obtain a more consistent result. The number 
-// of readings can be tweaked to increase performance or to make the 
-// readings more accurate. Returns current distance value from long range sensor
 double IR_SENSOR::read_far() {
 	double cumulative_value = 0; 
 	double cal_value;
@@ -118,13 +108,11 @@ double IR_SENSOR::read_far() {
 	return (1199.55 * pow(cal_value, -2.833));
 }
 
-void DIGI_SENSOR::pin_setup(int pin) {
-	sensor = pin;
-	pinMode(sensor, INPUT);
+void DIGI_SENSOR::digi_begin(int pin) {
+	sensor = pin; 
+	pinMode(sensor, INPUT); 
 }
-
-// Checks to see if an object is detected by the very close range sensor
-// Returns TRUE if an object is detected. 
+ 
 bool DIGI_SENSOR::ObjectIsToClose() {
 	int val = 0;
 	val = digitalRead(sensor);
@@ -133,5 +121,92 @@ bool DIGI_SENSOR::ObjectIsToClose() {
 	}
 	if (val == 0) {
 		return true;
+	}
+}
+
+
+void ENCODER::encoder_begin(int pin) {
+	sensor = pin;
+	pinMode(sensor, INPUT);
+	wheel_circumference = .20420352248;
+}
+
+void ENCODER::begin_speed_calc() {
+	timeStart = millis();
+	tick = 0;
+	wheel_rotations = 0;
+	dis_traveled = 0;
+}
+
+void ENCODER::read_value() {
+	value = digitalRead(sensor);
+	if (value == 0) {
+		tick++;
+	}
+}
+
+void ENCODER::end_speed_calc() {
+	timeEnd = millis();
+	time = (timeEnd - timeStart) / 1000; 
+	wheel_rotations = tick / 20; 
+	distance = wheel_rotations * wheel_circumference; 
+	dis_traveled += distance; 
+	speed = distance / time; 
+}
+
+double ENCODER::get_speed() {
+	return speed; 
+}
+
+double ENCODER::get_distance() {
+	return dis_traveled; 
+}
+
+
+void OBJECT_DETECTION::object_detection_begin(double volt) {
+	far.ir_begin(14, volt);
+	close.ir_begin(13, volt); 
+	fwd.digi_begin(44); 
+	bck.digi_begin(45); 
+}
+
+
+bool OBJECT_DETECTION::ObjectImmediatelyClose() {
+	// We check if a digital sensor has fired and note the position of the object 
+	if (fwd.ObjectIsToClose()) {
+		ObjectIsInFront = true;
+		return true;
+	}
+	if (bck.ObjectIsToClose()) {
+		ObjectIsBehind = true;
+	}
+	else {
+		ObjectIsInFront = false; 
+		ObjectIsBehind = false; 
+		return false; 
+	}
+}
+
+
+bool OBJECT_DETECTION::ApproachingObjectShouldReduceSpeed() {
+	double limit = 30.0; 
+	double last_four_reads[4];
+	for (int i = 0; i < 4; i++) {
+		last_four_reads[i] = close.read_close();
+	}
+
+	// Check to see if the values are decreasing, if they are, check the last read
+	// to see if it is within the limit Return TRUE if they are within the 
+	// the acceptable limit 
+	if (ArrayIsDecreasing(last_four_reads, 4)) {
+		if (last_four_reads[3] <= limit) {
+			return true; 
+		}
+		else {
+			return false;
+		}
+	}
+	else {
+		return false; 
 	}
 }

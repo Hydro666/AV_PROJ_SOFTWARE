@@ -8,48 +8,45 @@
 	2. TODO: Create object detection 
 */
 
+#include <Wire.h>
+#include <Adafruit_MotorShield.h>
+#include <Adafruit_Sensor.h>
 #include <sensor_control.h>
 #include <Movement_control.h>
 
-// Pins: 
-// close =  A9
-// Far = A8
-// rear close = 42
-// farward close = 44
-
 // Initial system setup  
-// Define the pins used for input 
-IR_SENSOR close;
-IR_SENSOR far;
-DIGI_SENSOR fwd;
-DIGI_SENSOR rear;
+MOVEMENT maneuver;
+OBJECT_DETECTION object_prox_cl;
+bool collision_check;
+bool buffer_check;
 
 void setup() {
-	// Begin
+	// Primary system start up 
 	Serial.begin(9600); 
-	close.pin_setup(A9, 6.8); 
-	far.pin_setup(A8, 6.8); 
-	fwd.pin_setup(44); 
-	rear.pin_setup(42); 
-
-	// Calibration 
-	close.calibrate(1); 
-	far.calibrate(2); 
+	maneuver.movement_setup(); 
+	object_prox_cl.object_detection_begin(4.00); 
 
 }
 
 // The main function that executes the logic 
 void loop() {
-	// Movement logic
-	// Each movement continues until it is told to stop or if the robot
-	// is going to have a collision 
-	// TODO: Create function that moves foward 
-	// and stops when either the specified distance is met OR we are about 
-	// to collide with an object 
-
+	Serial.print("test\n");
+	// Check that there are no objects in front of the robot 
+	collision_check = object_prox_cl.ObjectImmediatelyClose(); 
+	buffer_check = object_prox_cl.ApproachingObjectShouldReduceSpeed(); 
+	
 	// For testing purposes: 
-	// Test 1: 
+	// TODO: complete Test 1: 
 	// Move the robot forwards until a collision might occur, then stop 
+	if (collision_check != true) {
+		Serial.print("moving\n");
+		maneuver.fwd(1); 
+	}
+	else {
+		Serial.print("stopping\n"); 
+		maneuver.emergency_stop(1);
+	}
 
+	// TODO: Test 2: Go reverse for the same distance we went forward for then stop 
 
 }

@@ -37,7 +37,8 @@ void loop() {
 	
 	// For testing purposes: 
 	// TODO: complete Test 1: 
-	// Move the robot forwards until a collision might occur, then stop 
+	// Move the robot forwards until a collision might occur or the buffer is met, then stop
+	// harhly or softly, respectively 
 	if (collision_check != true) {
 		Serial.print("moving\n");
 		maneuver.fwd(1); 

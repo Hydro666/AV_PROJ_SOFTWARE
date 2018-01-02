@@ -94,6 +94,7 @@ private:
 	// Motor control 
 	bool RobotIsMoving; 
 	bool RobotIsGoingStraight; 
+	bool RobotISMovingForward; 
 
 	Adafruit_MotorShield AFMS;
 	Adafruit_DCMotor *f_r;
@@ -127,7 +128,11 @@ public:
 	// Stops the robot in case of a possible collision and keeps the robot stopped
 	// we accelerate the motors in the opposite direction that we were going to counter 
 	// momentum (1 -> we go back, 2 -> we go forward 
-	void emergency_stop(int direction); 
+	void emergency_stop(); 
+
+	// Gently pulls the robot to a stop unless an immediate object is detected
+	// in front of the robot this is triggered by the speed controller 
+	void buffer_stop();
 };
 
 #endif

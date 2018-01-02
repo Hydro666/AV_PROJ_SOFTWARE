@@ -39,7 +39,6 @@ void SPEED_CONTROLLER::end() {
 	wheel_4.end_speed_calc(); 
 	get_speed_results(); 
 }
-
 void SPEED_CONTROLLER::get_speed_results() {
 	speed_1 = wheel_1.get_speed(); 
 	speed_2 = wheel_2.get_speed(); 
@@ -53,7 +52,6 @@ void SPEED_CONTROLLER::get_distance_results() {
 	dis_3 = wheel_3.get_distance(); 
 	dis_4 = wheel_4.get_distance(); 
 }
-
 bool SPEED_CONTROLLER::Moving_straight() {
 	// Compare both the master and salves to see if there is an error 
 	// add a small correction everytime we see there's an error and set
@@ -119,7 +117,7 @@ void MOVEMENT::movement_setup() {
 	f_l->run(RELEASE);
 	r_r->run(RELEASE);
 	r_l->run(RELEASE);
-
+  
 	// We assume we're stopped when starting and that the robot is moving straight 
 	power.start_speed_controller();
 	object.object_detection_begin(4.00);

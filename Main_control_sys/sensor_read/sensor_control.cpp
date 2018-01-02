@@ -189,7 +189,7 @@ bool OBJECT_DETECTION::ObjectImmediatelyClose() {
 
 
 bool OBJECT_DETECTION::ApproachingObjectShouldReduceSpeed() {
-	double limit = 30.0; 
+	double limit = 40.00; 
 	double last_four_reads[4];
 	for (int i = 0; i < 4; i++) {
 		last_four_reads[i] = close.read_close();

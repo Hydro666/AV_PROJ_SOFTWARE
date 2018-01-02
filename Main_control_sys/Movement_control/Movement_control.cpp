@@ -6,7 +6,6 @@
 
 #include "Movement_control.h"
 
-												// 30,     31  ,      32        33
 void SPEED_CONTROLLER::start_speed_controller() {
 	wheel_1.encoder_begin(30); 
 	wheel_2.encoder_begin(31); 
@@ -122,12 +121,13 @@ void MOVEMENT::movement_setup() {
 	r_l->run(RELEASE);
 
 	// We assume we're stopped when starting and that the robot is moving straight 
-	RobotIsMoving = false;
 	power.start_speed_controller();
 	object.object_detection_begin(4.00);
+	RobotIsMoving = false; 
 	Serial.print("Motor Setup Complete!\n");
 
 }
+
 void MOVEMENT::all_run_forward() {
 	f_r->run(FORWARD);
 	f_l->run(FORWARD);
@@ -148,7 +148,7 @@ void MOVEMENT::fwd(int direction) {
 	if (RobotIsMoving) {
 		// Check for collision
 		if (object.ObjectImmediatelyClose()) {
-			emergency_stop(direction);
+			emergency_stop();
 		}
 		RobotIsGoingStraight = power.Moving_straight();
 		p2 = power.set_corrected_power(p2, 1);
@@ -167,9 +167,11 @@ void MOVEMENT::fwd(int direction) {
 		// run 
 		if (direction == 1) {
 			all_run_forward();
+			RobotISMovingForward = true; 
 		}
 		else {
 			all_run_backward(); 
+			RobotISMovingForward = false; 
 		}
 		// Get intial power for each motor 
 		p1 = power.set_start_power(); 
@@ -185,8 +187,12 @@ void MOVEMENT::fwd(int direction) {
 			// check for collision, this prevents the robot from colliding as its 
 			// accelerating forward 
 			if (object.ObjectImmediatelyClose()) {
-				emergency_stop(direction);
+				emergency_stop();
 				break; 
+			}
+			if (object.ApproachingObjectShouldReduceSpeed()) {
+				buffer_stop();
+				break;
 			}
 			f_r->setSpeed(i); 
 			f_l->setSpeed(j);
@@ -205,7 +211,7 @@ void MOVEMENT::fwd(int direction) {
 	}
 }
 
-void MOVEMENT::emergency_stop(int direction) {
+void MOVEMENT::emergency_stop() {
 	f_r->run(RELEASE); 
 	f_l->run(RELEASE); 
 	r_r->run(RELEASE); 
@@ -214,10 +220,10 @@ void MOVEMENT::emergency_stop(int direction) {
 	if (RobotIsMoving) {
 		// Apply a rapid acceleration backward to counter momentum using the current power
 		// but in the opposite direction 
-		if (direction == 1) {
+		if (RobotISMovingForward) {
 			all_run_backward();
 		}
-		if (direction == 2) {
+		if (RobotISMovingForward != true) {
 			all_run_forward();
 		}
 
@@ -235,4 +241,33 @@ void MOVEMENT::emergency_stop(int direction) {
 		RobotIsMoving = false; 
 	}
 		
+}
+
+void MOVEMENT::buffer_stop() {
+	// Get the current itteraton and slow down gently then stop 
+	Serial.print("Approaching buffer, stopping!\n");
+	if (RobotISMovingForward) {
+		all_run_backward();
+	}
+	if (RobotISMovingForward != true) {
+		all_run_forward(); 
+	}
+
+	for (i, j, k, l; i > 0, j > 0, k > 0, l > 0;
+		i - 5, j - 5, k - 5, l - 5) {
+		if (object.ObjectImmediatelyClose()) {
+			emergency_stop();
+			break;
+		}
+		f_r->setSpeed(i); 
+		f_l->setSpeed(j); 
+		r_r->setSpeed(k); 
+		r_l->setSpeed(l); 
+	}
+	
+	RobotIsMoving = false; 
+	f_r->run(RELEASE);
+	f_l->run(RELEASE);
+	r_r->run(RELEASE);
+	r_l->run(RELEASE);
 }

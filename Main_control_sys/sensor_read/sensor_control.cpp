@@ -6,14 +6,12 @@
 
 #include "sensor_control.h"
 
-void IR_SENSOR::ir_begin(int pin, double volt) {
+void IR_SENSOR::ir_begin(int pin, int volt) {
 	sensor = pin; 
 	volt_convert = volt / 1024; 
 	pinMode(sensor, INPUT); 
 }
 
-// TODO: Calibration needs better implementation. Wasn't working too well when 
-// it was included so it is temporarily removed. 
 void IR_SENSOR::calibrate(int n) {
 
 	// Starts calibration process 
@@ -69,7 +67,7 @@ void IR_SENSOR::calibrate(int n) {
 	}
 }
 
-double IR_SENSOR::read_close() {
+int IR_SENSOR::read_close() {
 	double cumulative_value = 0;  
 	double cal_value;
 	int readings = 5; 
@@ -84,12 +82,12 @@ double IR_SENSOR::read_close() {
 	// an R^2 value == .9961
 	// We scale the values we read between 65  and 372 as these are the absolute minimums 
 	// (per datasheet), utilizing the calibrated values to account for ambient lighting 
-	cal_value = (cumulative_value / readings) * volt_convert;
+	cal_value = map((cumulative_value / readings), c0, c1, 65, 372) * volt_convert;
 
-	return (62.1418 * pow(cal_value, -1.115));
+	return round((62.1418 * pow(cal_value, -1.115)));
 }
 
-double IR_SENSOR::read_far() {
+int IR_SENSOR::read_far() {
 	double cumulative_value = 0; 
 	double cal_value;
 	int readings = 5; 
@@ -103,9 +101,9 @@ double IR_SENSOR::read_far() {
 	// R^2 == .973 Readings are scaled between 211 and 454 as these are the absolute 
 	// minimums and maximums respectively (datasheet) utilizing the calibrated values 
 	// to account for ambient lighting 
-	cal_value = cumulative_value/readings * volt_convert;
+	cal_value = map(cumulative_value/readings, c0, c1, 211, 454) * volt_convert;
 
-	return (1199.55 * pow(cal_value, -2.833));
+	return round((1199.55 * pow(cal_value, -2.833)));
 }
 
 void DIGI_SENSOR::digi_begin(int pin) {
@@ -163,13 +161,14 @@ double ENCODER::get_distance() {
 }
 
 
-void OBJECT_DETECTION::object_detection_begin(double volt) {
+void OBJECT_DETECTION::configure_object_detection(int volt) {
+	Serial.print(F("Configuring object detection controls.\n")); 
 	far.ir_begin(13, volt);
 	close.ir_begin(14, volt); 
 	fwd.digi_begin(44); 
 	bck.digi_begin(45); 
-	buffer = 40.0; 
-	Serial.print(F("Object Detection setup completed.\n")); 
+	buffer = 40; 
+	Serial.print(F("Object Detection configuration completed.\n")); 
 }
 
 bool OBJECT_DETECTION::ObjectImmediatelyClose() {
@@ -193,7 +192,7 @@ bool OBJECT_DETECTION::ObjectInBufferRange() {
 	// Check to see if the values are decreasing, if they are, check the last read
 	// to see if it is within the limit Return TRUE if they are within the 
 	// the acceptable limit 
-	if (close.read_close() < buffer) {
+	if (close.read_close() <= buffer) {
 		return true; 
 	}
 	else {
@@ -201,6 +200,6 @@ bool OBJECT_DETECTION::ObjectInBufferRange() {
 	}
 }
 
-double OBJECT_DETECTION::object_distance_close() {
+int OBJECT_DETECTION::object_distance_close() {
 	return close.read_close(); 
 }

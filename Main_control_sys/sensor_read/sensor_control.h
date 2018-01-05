@@ -35,6 +35,10 @@ class OBJECT_DETECTION;
 		IR-fwd: 44
 		IR- r:  45 
 
+	Analog sensors:
+		IR far = A13
+		IR close = A14
+
 		Encoder 
 			front:
 				left = 30
@@ -42,10 +46,6 @@ class OBJECT_DETECTION;
 			back: 
 				left = 32
 				right = 33
-				
-	Analog sensors: 
-		IR far = A13
-		IR close = A14
 	*/
 
 // Analog sensors control 
@@ -58,23 +58,23 @@ private:
 	int sensor; 
 
 public: 
-	void ir_begin(int, double); 
+	void ir_begin(int, int); 
 
 	// Calibrate: 0 if we want to calibrate
 	// 1 if we don't (close), 2 if we don't (far)
-	void calibrate(int n);
+	void calibrate(int);
 
 	// Function that obtains the approximate distance from the close range sensor.
 	// We average out from a number of readings to obtain a more consistent result. 
 	// The number of readings can be tweaked to increase performance or to make 
 	// the reading more accurate. Returns current distance value from the close range sensor 
-	double read_close();
+	int read_close();
 
 	// Function that obtains the approximate distance of the long range sensor. 
 	// We average our readings to obtain a more consistent result. The number 
 	// of readings can be tweaked to increase performance or to make the 
 	// readings more accurate. Returns current distance value from long range sensor
-	double read_far();
+	int read_far();
 
 };
 
@@ -141,12 +141,11 @@ private:
 
 	bool ObjectIsInFront; 
 	bool ObjectIsBehind;
-
-	double buffer; 
+	int buffer; 
 
 public: 
 	// Starts object detection: volt  , far, close, fwd, back)
-	void object_detection_begin(double);
+	void configure_object_detection(int);
 
 	// Tells the robot where an object is, assuming it is detected extremely close by 
 	// either the front or rear sensor returns TRUE if there is an object close by 
@@ -158,7 +157,7 @@ public:
 	bool ObjectInBufferRange();
 
 	// Returns the nearest object distance
-	double object_distance_close(); 
+	int object_distance_close(); 
 
 };
 

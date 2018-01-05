@@ -7,10 +7,12 @@
 #include "Movement_control.h"
 
 void SPEED_CONTROLLER::start_speed_controller() {
+	Serial.print(F("Configuring speed controllers")); 
 	wheel_1.encoder_begin(30); 
 	wheel_2.encoder_begin(31); 
 	wheel_3.encoder_begin(32); 
 	wheel_4.encoder_begin(33); 
+	Serial.print(F("Speed controllers configured")); 
 }
 
 // TODO: Implement speed controller / better determination for the power 
@@ -126,7 +128,7 @@ int SPEED_CONTROLLER::degrees_spun() {
 
 
 void MOVEMENT::movement_setup() {
-	Serial.print(F("Setting up motors...\n")); 
+	Serial.print(F("Configuring Maneuver controls.\n")); 
 	AFMS = Adafruit_MotorShield();
 	f_r = AFMS.getMotor(3);
 	f_l = AFMS.getMotor(4);
@@ -148,12 +150,11 @@ void MOVEMENT::movement_setup() {
   
 	// We assume we're stopped when starting and that the robot is moving straight 
 	power.start_speed_controller();
-	object.object_detection_begin(4.00);
+	object.configure_object_detection(4.00);
 	RobotIsMoving = false; 
 	RobotISMovingForward = false;
 	RobotIsSpinning = false; 
-	Serial.print(F("Motor Setup Complete!\n"));
-
+	Serial.print(F("Maneuver configuration complete!\n"));
 }
 
 void MOVEMENT::all_run_forward() {
@@ -244,10 +245,6 @@ void MOVEMENT::fwd(bool fwd) {
 	}
 }
 
-// TODO: This should be behave much like the fwd command. Except we check 
-// when we should stop spinning as well as record the angle of spin thus far. 
-// ideally the robot spins until the 'optimal location' is found. Thus it's recommended
-// that the robot completes ONE revolution before deciding to stop. 
 void MOVEMENT::spin(bool direction) {
 
 	if (RobotIsSpinning){

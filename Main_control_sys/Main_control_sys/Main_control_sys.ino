@@ -19,13 +19,12 @@ MOVEMENT maneuver;
 OBJECT_DETECTION object_prox_cl;
 bool CollisionCheck;
 bool Buffer;
-double nearest_object_distance; 
+int nearest_object_distance; 
 
 void setup() {
 	// Primary system start up 
 	Serial.begin(9600); 
 	maneuver.movement_setup(); 
-	object_prox_cl.object_detection_begin(4.00); 
 }
 
 // The main function that executes the logic 

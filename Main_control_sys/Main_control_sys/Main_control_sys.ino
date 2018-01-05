@@ -17,37 +17,47 @@
 // Initial system setup  
 MOVEMENT maneuver;
 OBJECT_DETECTION object_prox_cl;
-bool collision_check;
-bool buffer_check;
+bool CollisionCheck;
+bool Buffer;
+double nearest_object_distance; 
 
 void setup() {
 	// Primary system start up 
 	Serial.begin(9600); 
 	maneuver.movement_setup(); 
 	object_prox_cl.object_detection_begin(4.00); 
-
 }
 
 // The main function that executes the logic 
 void loop() {
-	Serial.print("test\n");
 	// Check that there are no objects in front of the robot 
-	collision_check = object_prox_cl.ObjectImmediatelyClose(); 
-	buffer_check = object_prox_cl.ApproachingObjectShouldReduceSpeed(); 
-	
+	CollisionCheck = object_prox_cl.ObjectImmediatelyClose();
+	Buffer = object_prox_cl.ObjectInBufferRange();
+	nearest_object_distance = object_prox_cl.object_distance_close();
+
 	// For testing purposes: 
-	// TODO: complete Test 1: 
 	// Move the robot forwards until a collision might occur or the buffer is met, then stop
-	// harhly or softly, respectively 
-	if (collision_check != true) {
-		Serial.print("moving\n");
-		maneuver.fwd(1); 
+	// harhly or softly, respectively. Stay stopped if we are within buffer range. 
+
+	// Only move if are no objects in front of the robot 
+	if (Buffer != true) {
+		Serial.print(F("Looks clear, proceeding forward\n"));
+		Serial.print(F("Closest object is: "));
+		Serial.print(nearest_object_distance);
+		Serial.println();
+		maneuver.fwd(true);
 	}
-	else {
-		Serial.print("stopping\n"); 
-		maneuver.emergency_stop(1);
+	// If we reach the buffer distance or we are within buffer distance, we slow gently and come to a stop 
+	if (Buffer) {
+		Serial.print(F("Slowing due to object approaching. Distance is: \n"));
+		Serial.print(nearest_object_distance);
+		Serial.println();
+		maneuver.buffer_stop();
 	}
 
-	// TODO: Test 2: Go reverse for the same distance we went forward for then stop 
-
+	// If we detect a collision, we ignore everything else and just come to a stop or remain stopeed. 
+	if (CollisionCheck) {
+		Serial.print(F("Collision imminent.\n"));
+		maneuver.emergency_stop();
+	}
 }

@@ -13,9 +13,16 @@ void SPEED_CONTROLLER::start_speed_controller() {
 	wheel_4.encoder_begin(33); 
 }
 
-int SPEED_CONTROLLER::set_start_power() {
-	start_power = 150;
-	return start_power;
+// TODO: Implement speed controller / better determination for the power 
+// Depending on closest object. 
+int SPEED_CONTROLLER::set_fwd_start_power() {
+	return 150;
+}
+
+// TODO: Implement speed controller / better determination for spin power depending
+// if the robot needs to maneuver in a tight space 
+int SPEED_CONTROLLER::set_spin_start_power() {
+	return 50;
 }
 
 void SPEED_CONTROLLER::begin() {
@@ -39,6 +46,7 @@ void SPEED_CONTROLLER::end() {
 	wheel_4.end_speed_calc(); 
 	get_speed_results(); 
 }
+
 void SPEED_CONTROLLER::get_speed_results() {
 	speed_1 = wheel_1.get_speed(); 
 	speed_2 = wheel_2.get_speed(); 
@@ -52,14 +60,21 @@ void SPEED_CONTROLLER::get_distance_results() {
 	dis_3 = wheel_3.get_distance(); 
 	dis_4 = wheel_4.get_distance(); 
 }
-bool SPEED_CONTROLLER::Moving_straight() {
+
+bool SPEED_CONTROLLER::MasterSlaveSame(bool RobotIsSpinning) {
 	// Compare both the master and salves to see if there is an error 
 	// add a small correction everytime we see there's an error and set
 	// a new correction power. 
 	double error_1; 
 	double error_2; 
-	error_1 = speed_1 - speed_2; 
-	error_2 = speed_4 - speed_3; 
+	if (RobotIsSpinning) {
+		error_1 = speed_1 - speed_3;
+		error_2 = speed_2 - speed_4; 
+	}
+	else {
+		error_1 = speed_1 - speed_2;
+		error_2 = speed_4 - speed_3;
+	}
 
 	if ((error_1 || error_2) != 0.00) {
 		if (error_1 > 0.00) {
@@ -93,18 +108,31 @@ int SPEED_CONTROLLER::set_corrected_power(int power, int slave) {
 	}
 }
 
+int SPEED_CONTROLLER::degrees_spun() {
+	// Width of vehicle in cm
+	double vehicle_width = 15.24;
+	// Degress moved 
+	int theta_1, theta_2; 
+
+	// Equation used to calculate the amount of degrees moved
+	// by the robot. This was obtained utilizing the arch length 
+	// function. We only check for the distance moved by each of masters 
+	// and return the average of each
+
+	theta_1 = round((180 * dis_1) / (PI * vehicle_width)); 
+	theta_2 = round((180 * dis_2) / (PI * vehicle_width)); 
+	return (theta_1 + theta_2) / 2; 
+}
+
 
 void MOVEMENT::movement_setup() {
-	Serial.print("Setting up motors...\n");
-	// Motor control 
-	// Motor control objects 
+	Serial.print(F("Setting up motors...\n")); 
 	AFMS = Adafruit_MotorShield();
-	f_r = AFMS.getMotor(1);
+	f_r = AFMS.getMotor(3);
 	f_l = AFMS.getMotor(4);
 	r_r = AFMS.getMotor(2);
-	r_l = AFMS.getMotor(3);
+	r_l = AFMS.getMotor(1);
 
-	// Motor control setup 
 	AFMS.begin();
 	all_run_forward();
 
@@ -122,7 +150,9 @@ void MOVEMENT::movement_setup() {
 	power.start_speed_controller();
 	object.object_detection_begin(4.00);
 	RobotIsMoving = false; 
-	Serial.print("Motor Setup Complete!\n");
+	RobotISMovingForward = false;
+	RobotIsSpinning = false; 
+	Serial.print(F("Motor Setup Complete!\n"));
 
 }
 
@@ -131,6 +161,7 @@ void MOVEMENT::all_run_forward() {
 	f_l->run(FORWARD);
 	r_r->run(FORWARD);
 	r_l->run(FORWARD);
+	RobotISMovingForward = true; 
 }
 
 void MOVEMENT::all_run_backward() {
@@ -138,24 +169,30 @@ void MOVEMENT::all_run_backward() {
 	f_l->run(BACKWARD);
 	r_r->run(BACKWARD);
 	r_l->run(BACKWARD);
+	RobotISMovingForward = false;
 }
 
-void MOVEMENT::fwd(int direction) {
+void MOVEMENT::fwd(bool fwd) {
 	// Check if robot is already in motion, if so we do not check the direction as
 	// we assume we do not need to change direction rapidlly without stopping
 	if (RobotIsMoving) {
-		// Check for collision
-		if (object.ObjectImmediatelyClose()) {
-			emergency_stop();
-		}
-		RobotIsGoingStraight = power.Moving_straight();
-		p2 = power.set_corrected_power(p2, 1);
-		p3 = power.set_corrected_power(p3, 2);
+		power.begin(); 
 		f_r->setSpeed(p1); 
 		f_l->setSpeed(p2); 
 		r_r->setSpeed(p3); 
 		r_l->setSpeed(p4); 
-		Serial.print("Looks clear, so I'll keep moving.\n"); 
+		power.itterate();
+		// Check for collision
+		if (object.ObjectImmediatelyClose()) {
+			emergency_stop();
+		}
+		if (object.ObjectInBufferRange()) {
+			buffer_stop();
+		}
+		power.end(); 
+		power.MasterSlaveSame(RobotIsSpinning);
+		p2 = power.set_corrected_power(p2, 1);
+		p3 = power.set_corrected_power(p3, 2);
 	}
 	else {
 		// If starting from stopped, we get intial speed values from the speed controller
@@ -163,21 +200,19 @@ void MOVEMENT::fwd(int direction) {
 		// accelerate. After we accelerate we check to see if we are moving consistently
 		// if not we let the robot know so that it corrects it during the loop in the next 
 		// run 
-		if (direction == 1) {
+		if (fwd) {
 			all_run_forward();
-			RobotISMovingForward = true; 
 		}
 		else {
 			all_run_backward(); 
-			RobotISMovingForward = false; 
 		}
 		// Get intial power for each motor 
-		p1 = power.set_start_power(); 
-		p2 = power.set_start_power(); 
-		p3 = power.set_start_power(); 
-		p4 = power.set_start_power(); 
-		power.begin(); 
+		p1 = power.set_fwd_start_power();
+		p2 = power.set_fwd_start_power();
+		p3 = power.set_fwd_start_power();
+		p4 = power.set_fwd_start_power();
 		RobotIsMoving = true;
+		power.begin();
 
 		for (i = 0, j = 0, k = 0, l = 0;
 			i < p1, j < p2, k < p3, l < p4;
@@ -188,7 +223,7 @@ void MOVEMENT::fwd(int direction) {
 				emergency_stop();
 				break; 
 			}
-			if (object.ApproachingObjectShouldReduceSpeed()) {
+			if (object.ObjectInBufferRange()) {
 				buffer_stop();
 				break;
 			}
@@ -203,17 +238,71 @@ void MOVEMENT::fwd(int direction) {
 		// Apply small correction to robot and see if we are traveling straight
 		// if not we let the robot know so that it can correct it during the next
 		// itteration. Also let the robot know that it is moving at this point 
-		RobotIsGoingStraight = power.Moving_straight();
+		power.MasterSlaveSame(RobotIsSpinning);
 		p2 = power.set_corrected_power(p2, 1);
 		p3 = power.set_corrected_power(p3, 2);
 	}
 }
 
+// TODO: This should be behave much like the fwd command. Except we check 
+// when we should stop spinning as well as record the angle of spin thus far. 
+// ideally the robot spins until the 'optimal location' is found. Thus it's recommended
+// that the robot completes ONE revolution before deciding to stop. 
+void MOVEMENT::spin(bool direction) {
+
+	if (RobotIsSpinning){
+		power.begin(); 
+		f_r->setSpeed(p1);
+		f_l->setSpeed(p2);
+		r_r->setSpeed(p3);
+		r_l->setSpeed(p4);
+		power.itterate(); 
+		degree = power.degrees_spun(); 
+		power.end(); 
+		power.MasterSlaveSame(RobotIsSpinning);
+		p3 = power.set_corrected_power(p3, 1);
+		p4 = power.set_corrected_power(p4, 1);
+		}
+	else {
+		// Spins right if bool input is true, left if not 
+		if (direction) {
+			f_r->run(RELEASE);
+			f_l->run(FORWARD);
+			r_r->run(RELEASE);
+			r_l->run(FORWARD);
+		}
+		else {
+			f_r->run(FORWARD);
+			f_l->run(RELEASE);
+			r_r->run(FORWARD);
+			r_l->run(RELEASE);
+		}
+		RobotIsSpinning = true; 
+		// Get spin speed from the controller 
+		p1 = power.set_spin_start_power(); 
+		p2 = power.set_spin_start_power(); 
+		p3 = power.set_spin_start_power(); 
+		p4 = power.set_spin_start_power(); 
+		power.begin(); 
+		// Get total distance spun to calculate to degree of motion and assign it to 
+		// the degree value so the robot knows how long it's moved. 
+		for (i = 0, j = 0, k = 0, l = 0; i < p1, j < p2, k < p3, l < p4;
+			i++, j++, k++, l++) {
+			f_l->setSpeed(p2); 
+			r_l->setSpeed(p4); 
+			power.itterate(); 
+			// Calculate degrees traveled by the robot 
+			degree = power.degrees_spun(); 
+		}
+		// Apply correction 
+		power.end(); 
+		power.MasterSlaveSame(RobotIsSpinning);
+		p3 = power.set_corrected_power(p3, 1); 
+		p4 = power.set_corrected_power(p4, 1); 
+	}
+}
+
 void MOVEMENT::emergency_stop() {
-	f_r->run(RELEASE); 
-	f_l->run(RELEASE); 
-	r_r->run(RELEASE); 
-	r_l->run(RELEASE); 
 	Serial.print("Emergency brake applied.\n"); 
 	if (RobotIsMoving) {
 		// Apply a rapid acceleration backward to counter momentum using the current power
@@ -229,6 +318,47 @@ void MOVEMENT::emergency_stop() {
 		f_l->setSpeed(j-10);
 		r_r->setSpeed(k-10);
 		r_l->setSpeed(l-10);
+
+		f_r->setSpeed(0);
+		f_l->setSpeed(0);
+		r_r->setSpeed(0);
+		r_l->setSpeed(0);
+		RobotIsMoving = false; 
+	}
+	else {
+		f_r->setSpeed(0);
+		f_l->setSpeed(0);
+		r_r->setSpeed(0);
+		r_l->setSpeed(0);
+	}
+		
+}
+
+void MOVEMENT::buffer_stop() {
+	if (RobotIsMoving) {
+		// Get the current itteraton and slow down gently then stop 
+		int amt = 50;
+		all_run_backward(); 
+		if (object.ObjectImmediatelyClose()) {
+			emergency_stop();
+		}
+		f_r->setSpeed(i-amt);
+		f_l->setSpeed(j-amt);
+		r_r->setSpeed(k-amt);
+		r_l->setSpeed(l-amt);
+
+		f_r->setSpeed(0);
+		f_l->setSpeed(0);
+		r_r->setSpeed(0);
+		r_l->setSpeed(0);
+		RobotIsMoving = false;
+	}
+	if (RobotIsSpinning) {
+		f_r->setSpeed(0);
+		f_l->setSpeed(0);
+		r_r->setSpeed(0);
+		r_l->setSpeed(0);
+		RobotIsSpinning = false;
 		RobotIsMoving = false;
 	}
 	else {
@@ -238,34 +368,4 @@ void MOVEMENT::emergency_stop() {
 		r_l->setSpeed(0);
 		RobotIsMoving = false; 
 	}
-		
-}
-
-void MOVEMENT::buffer_stop() {
-	// Get the current itteraton and slow down gently then stop 
-	Serial.print("Approaching buffer, stopping!\n");
-	if (RobotISMovingForward) {
-		all_run_backward();
-	}
-	if (RobotISMovingForward != true) {
-		all_run_forward(); 
-	}
-
-	for (i, j, k, l; i > 0, j > 0, k > 0, l > 0;
-		i - 5, j - 5, k - 5, l - 5) {
-		if (object.ObjectImmediatelyClose()) {
-			emergency_stop();
-			break;
-		}
-		f_r->setSpeed(i); 
-		f_l->setSpeed(j); 
-		r_r->setSpeed(k); 
-		r_l->setSpeed(l); 
-	}
-	
-	RobotIsMoving = false; 
-	f_r->run(RELEASE);
-	f_l->run(RELEASE);
-	r_r->run(RELEASE);
-	r_l->run(RELEASE);
 }

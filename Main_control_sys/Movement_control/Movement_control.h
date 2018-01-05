@@ -21,7 +21,7 @@
 #include <sensor_control.h>
 
 // Navigation has a way point, has a direction, has a movement 
-
+class DIRECTION_OPTIMIZER; 
 class SPEED_CONTROLLER; 
 class MOVEMENT; 
 
@@ -44,10 +44,10 @@ private:
 
 	// current motor power
 	int start_power;
-	double speed_1; // master
-	double speed_2; // slave
-	double speed_3; // slave
-	double speed_4; // master 
+	double speed_1; 
+	double speed_2; 
+	double speed_3; 
+	double speed_4;  
 
 	double dis_1; 
 	double dis_2; 
@@ -58,15 +58,18 @@ private:
 	// of begin() and end() to function properly 
 	void get_speed_results();
 
-	// Returns the distance values 
+	// Returns the distance travled by each wheel  
 	void get_distance_results(); 
 
 public:
 	// Sets the encoder so that we may monitor the speed
 	void start_speed_controller(); 
 
-	// Sets the start power 
-	int set_start_power(); 
+	// Sets the start power if the robot is requested to go forward
+	int set_fwd_start_power(); 
+
+	// Sets the start power if the robot is requested to spin
+	int set_spin_start_power(); 
 
 	// Begins calculating speed from the encoder 
 	void begin();
@@ -77,14 +80,18 @@ public:
 	// Tells the encoder to stop calculates speed & distance 
 	void end();
 
-	// Checks to see if th erobot is moving staright. Returns 
+	// Checks to see if Master and slave are equal . Returns 
 	// TRUE if it is
-	bool Moving_straight(); 
+	bool MasterSlaveSame(bool); 
 
 	// Sets corrected power. This requires a speed reading of some sort and 
 	// retruns the 'corrected' values. slave number corresponds to the slave 
 	// motor number, 1-> slave one, 2-> salve two 
 	int set_corrected_power(int power, int slave); 
+
+	// Returns the amount the robot has turned in degrees. Rounds up to the nearest
+	// whole number. This is only used during the spin maneuver 
+	int degrees_spun(); 
 };
 
 // Movement has a motor
@@ -93,8 +100,8 @@ class MOVEMENT{
 private:
 	// Motor control 
 	bool RobotIsMoving; 
-	bool RobotIsGoingStraight; 
 	bool RobotISMovingForward; 
+	bool RobotIsSpinning; 
 
 	Adafruit_MotorShield AFMS;
 	Adafruit_DCMotor *f_r;
@@ -105,15 +112,21 @@ private:
 	// Obstacle detection 
 	OBJECT_DETECTION object; 
 
+	// Way point finder, used during spin detection 
+
 	// Power to each motor 
 	SPEED_CONTROLLER power;
 	int p1, p2, p3, p4; 
 	int i, j, k, l; 
+	double s1, s2, s3, s4; 
+
+	// Used to calculate the spin distance
+	int degree; 
 
 	// Sets all motors to run forward 
 	void all_run_forward();
 
-	// Sets ll motors to run backward 
+	// Sets all motors to run backward 
 	void all_run_backward(); 
 
 public:
@@ -123,7 +136,13 @@ public:
 	// Accelerates the motors forward to a specified speed set by the speed controller 
 	// Go straight Start from stop, Go straight already in motion,
 	// direction (1 -> forward, 2-> backward)
-	void fwd(int direction);
+	void fwd(bool);
+
+	// Tells the robot to spin in its current location. It should not move forward or
+	// backward as it performs this maneuver. This function continues until 
+	// the robot is told to stop. It keeps track of the amount of degree it has spun. 
+	// Spins right if bool is true, left if not
+	void spin(bool); 
 
 	// Stops the robot in case of a possible collision and keeps the robot stopped
 	// we accelerate the motors in the opposite direction that we were going to counter 

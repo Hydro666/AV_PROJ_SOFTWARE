@@ -44,8 +44,8 @@ class OBJECT_DETECTION;
 				right = 33
 				
 	Analog sensors: 
-		IR far = A14
-		IR close = A13
+		IR far = A13
+		IR close = A14
 	*/
 
 // Analog sensors control 
@@ -142,6 +142,8 @@ private:
 	bool ObjectIsInFront; 
 	bool ObjectIsBehind;
 
+	double buffer; 
+
 public: 
 	// Starts object detection: volt  , far, close, fwd, back)
 	void object_detection_begin(double);
@@ -150,9 +152,13 @@ public:
 	// either the front or rear sensor returns TRUE if there is an object close by 
 	bool ObjectImmediatelyClose(); 
 
-	// Tells the robot that it should slow its speed down as it is approaching an object within 
-	// range. Returns TRUE if something is approaching the acceptable buffer for the robot (30 cm~) 
-	bool ApproachingObjectShouldReduceSpeed(); 
+	// Tells the robot that it should slow its speed down as it is approaching an object 
+	// within range. Returns TRUE if something is approaching the acceptable buffer for 
+	// the robot or if the object is within buffer range
+	bool ObjectInBufferRange();
+
+	// Returns the nearest object distance
+	double object_distance_close(); 
 
 };
 

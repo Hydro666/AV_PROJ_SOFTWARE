@@ -127,6 +127,10 @@ public:
 
 	// Returns the distance traveled in meters 
 	double get_distance(); 
+
+	// Sets the intial values for the encoder. Very useful when we start a new maneuever
+	// and we want to track how much a particular maneuver moves the robot
+	void reset();
 };
 
 // Class that detects obstacles around the robot. This allows the robot to 

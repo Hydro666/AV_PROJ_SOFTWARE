@@ -67,7 +67,7 @@ public:
 
 	// Sets the start power if the robot is requested to go forward
 	int set_fwd_start_power(); 
-
+	
 	// Sets the start power if the robot is requested to spin
 	int set_spin_start_power(); 
 
@@ -79,6 +79,10 @@ public:
 
 	// Tells the encoder to stop calculates speed & distance 
 	void end();
+
+	// Resets all the wheel encoders. This is used when the robot starts a new maneuver
+	// This resets speed and distance to zero 
+	void reset(); 
 
 	// Checks to see if Master and slave are equal . Returns 
 	// TRUE if it is

@@ -49,6 +49,23 @@ void SPEED_CONTROLLER::end() {
 	get_speed_results(); 
 }
 
+void SPEED_CONTROLLER::reset() {
+	speed_1 = 0; 
+	speed_2 = 0; 
+	speed_3 = 0; 
+	speed_4 = 0; 
+
+	dis_1 = 0; 
+	dis_2 = 0; 
+	dis_3 = 0; 
+	dis_4 = 0; 
+
+	wheel_1.reset(); 
+	wheel_2.reset(); 
+	wheel_3.reset(); 
+	wheel_4.reset(); 
+}
+
 void SPEED_CONTROLLER::get_speed_results() {
 	speed_1 = wheel_1.get_speed(); 
 	speed_2 = wheel_2.get_speed(); 
@@ -213,6 +230,7 @@ void MOVEMENT::fwd(bool fwd) {
 		p3 = power.set_fwd_start_power();
 		p4 = power.set_fwd_start_power();
 		RobotIsMoving = true;
+		power.reset(); 
 		power.begin();
 
 		for (i = 0, j = 0, k = 0, l = 0;
@@ -280,6 +298,7 @@ void MOVEMENT::spin(bool direction) {
 		p2 = power.set_spin_start_power(); 
 		p3 = power.set_spin_start_power(); 
 		p4 = power.set_spin_start_power(); 
+		power.reset(); 
 		power.begin(); 
 		// Get total distance spun to calculate to degree of motion and assign it to 
 		// the degree value so the robot knows how long it's moved. 

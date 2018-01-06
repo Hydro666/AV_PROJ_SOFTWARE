@@ -127,13 +127,13 @@ void ENCODER::encoder_begin(int pin) {
 	sensor = pin;
 	pinMode(sensor, INPUT);
 	wheel_circumference = .20420352248;
+	tick = 0;
+	wheel_rotations = 0;
+	dis_traveled = 0;
 }
 
 void ENCODER::begin_speed_calc() {
 	timeStart = millis();
-	tick = 0;
-	wheel_rotations = 0;
-	dis_traveled = 0;
 }
 
 void ENCODER::read_value() {
@@ -146,7 +146,7 @@ void ENCODER::read_value() {
 void ENCODER::end_speed_calc() {
 	timeEnd = millis();
 	time = (timeEnd - timeStart) / 1000; 
-	wheel_rotations = tick / 20; 
+	wheel_rotations += (tick / 20); 
 	distance = wheel_rotations * wheel_circumference; 
 	dis_traveled += distance; 
 	speed = distance / time; 
@@ -160,6 +160,11 @@ double ENCODER::get_distance() {
 	return dis_traveled; 
 }
 
+void ENCODER::reset() {
+	tick = 0; 
+	wheel_rotations = 0; 
+	dis_traveled = 0; 
+}
 
 void OBJECT_DETECTION::configure_object_detection(int volt) {
 	Serial.print(F("Configuring object detection controls.\n")); 

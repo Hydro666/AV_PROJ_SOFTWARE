@@ -13,19 +13,25 @@
 #include <Adafruit_Sensor.h>
 #include <sensor_control.h>
 #include <Movement_control.h>
+#include <HardwareProperties.h>
 
 // Initial system setup  
 MOVEMENT maneuver;
 OBJECT_DETECTION object_prox_cl;
 bool CollisionCheck;
 bool Buffer;
-int nearest_object_distance; 
+int nearest_object_distance;
 
 void setup() {
 	// Primary system start up 
-	Serial.begin(9600); 
-	maneuver.movement_setup(); 
+	Serial.begin(9600);
+    pinMode(DirFwd, INPUT);
+    pinMode(DirRev, INPUT);
+    pinMode(AIrFar, INPUT);
+	maneuver.movement_setup();
+
 }
+
 
 // The main function that executes the logic 
 void loop() {
@@ -39,7 +45,7 @@ void loop() {
 	// harhly or softly, respectively. Stay stopped if we are within buffer range. 
 
 	// Only move if are no objects in front of the robot 
-	if (Buffer != true) {
+	if (!Buffer) {
 		Serial.print(F("Looks clear, proceeding forward\n"));
 		Serial.print(F("Closest object is: "));
 		Serial.print(nearest_object_distance);

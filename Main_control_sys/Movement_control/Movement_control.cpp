@@ -7,12 +7,12 @@
 #include "Movement_control.h"
 
 void SPEED_CONTROLLER::start_speed_controller() {
-	Serial.print(F("Configuring speed controllers")); 
+	Serial.print(F("Configuring speed controllers"));
 	wheel_1.encoder_begin(30); 
 	wheel_2.encoder_begin(31); 
 	wheel_3.encoder_begin(32); 
 	wheel_4.encoder_begin(33); 
-	Serial.print(F("Speed controllers configured")); 
+	Serial.print(F("Speed controllers configured"));
 }
 
 // TODO: Implement speed controller / better determination for the power 
@@ -128,7 +128,7 @@ int SPEED_CONTROLLER::degrees_spun() {
 
 
 void MOVEMENT::movement_setup() {
-	Serial.print(F("Configuring Maneuver controls.\n")); 
+	Serial.print(F("Configuring Maneuver controls.\n"));
 	AFMS = Adafruit_MotorShield();
 	f_r = AFMS.getMotor(3);
 	f_l = AFMS.getMotor(4);
@@ -300,7 +300,7 @@ void MOVEMENT::spin(bool direction) {
 }
 
 void MOVEMENT::emergency_stop() {
-	Serial.print("Emergency brake applied.\n"); 
+	Serial.print("Emergency brake applied.\n");
 	if (RobotIsMoving) {
 		// Apply a rapid acceleration backward to counter momentum using the current power
 		// but in the opposite direction 

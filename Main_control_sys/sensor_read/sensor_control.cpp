@@ -5,6 +5,9 @@
 */
 
 #include "sensor_control.h"
+#include <AbstractSensor.h>
+
+//IR_SENSOR::IR_SENSOR(uint8_t readFrom) : AbstractSensor(readFrom, analogRead){}
 
 void IR_SENSOR::ir_begin(int pin, int volt) {
 	sensor = pin; 
@@ -167,13 +170,13 @@ void ENCODER::reset() {
 }
 
 void OBJECT_DETECTION::configure_object_detection(int volt) {
-	Serial.print(F("Configuring object detection controls.\n")); 
+	Serial.print(F("Configuring object detection controls.\n"));
 	far.ir_begin(13, volt);
 	close.ir_begin(14, volt); 
 	fwd.digi_begin(44); 
 	bck.digi_begin(45); 
 	buffer = 40; 
-	Serial.print(F("Object Detection configuration completed.\n")); 
+	Serial.print(F("Object Detection configuration completed.\n"));
 }
 
 bool OBJECT_DETECTION::ObjectImmediatelyClose() {

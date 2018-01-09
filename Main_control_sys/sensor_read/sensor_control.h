@@ -13,7 +13,7 @@
 #define _sensor_control_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
+	#include "Arduino.h"
 #else
 	#include "WProgram.h"
 #endif
@@ -23,6 +23,7 @@
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include "Util.h"
+#include "AbstractSensor.h"
 
 class IR_SENSOR; 
 class DIGI_SENSOR; 
@@ -49,7 +50,7 @@ class OBJECT_DETECTION;
 	*/
 
 // Analog sensors control 
-class IR_SENSOR {
+class IR_SENSOR /*: AbstractSensor*/ {
 
 private: 
 	double c0;			// These are the calibration values for the senor 
@@ -57,8 +58,8 @@ private:
 	double volt_convert;
 	int sensor; 
 
-public: 
-	void ir_begin(int, int); 
+public:
+	void ir_begin(int, int);
 
 	// Calibrate: 0 if we want to calibrate
 	// 1 if we don't (close), 2 if we don't (far)

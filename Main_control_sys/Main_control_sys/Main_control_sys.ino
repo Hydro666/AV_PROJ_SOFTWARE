@@ -1,40 +1,30 @@
 /*
  Name:		Main_control_sys.ino
  Created:	11/24/2017 
- Author:	Aquiles Gomez
+ Author:	Aquiles Gomez, Henry Lancelle
  Description: 
 	This file houses all the logic for the autonomous car project. 
-	1. TODO: Create movement classes and include navigation within it 
-	2. TODO: Create object detection 
 */
 
-#include <Wire.h>
-#include <Adafruit_MotorShield.h>
-#include <Adafruit_Sensor.h>
+// TODO: Improve memory allocation within all modules
+// TODO: Expand on cautionary yield returns within the object detection modules 
+
 #include <sensor_control.h>
 #include <Movement_control.h>
-#include <HardwareProperties.h>
 
-// Initial system setup  
-MOVEMENT maneuver;
-OBJECT_DETECTION object_prox_cl;
-bool CollisionCheck;
-bool Buffer;
-int nearest_object_distance;
+// Initial system setup
 
+int object_distance;
+double sensor_voltage = 4.00;
 void setup() {
 	// Primary system start up 
-	Serial.begin(9600);
-    pinMode(DirFwd, INPUT);
-    pinMode(DirRev, INPUT);
-    pinMode(AIrFar, INPUT);
-	maneuver.movement_setup();
-
+	Serial.begin(9600); 
 }
 
 
 // The main function that executes the logic 
 void loop() {
+
 	// Check that there are no objects in front of the robot 
 	CollisionCheck = object_prox_cl.ObjectImmediatelyClose();
 	Buffer = object_prox_cl.ObjectInBufferRange();
@@ -60,9 +50,4 @@ void loop() {
 		maneuver.buffer_stop();
 	}
 
-	// If we detect a collision, we ignore everything else and just come to a stop or remain stopeed. 
-	if (CollisionCheck) {
-		Serial.print(F("Collision imminent.\n"));
-		maneuver.emergency_stop();
-	}
 }

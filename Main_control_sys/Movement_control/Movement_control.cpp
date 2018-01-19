@@ -1,7 +1,7 @@
 /*
  Name:		Movement_control.cpp
  Created:	11/24/2017 8:40:58 PM
- Author:	Aquiles Gomez
+ Author:	Aquiles Gomez, Henry Lancelle
 */
 
 #include "Movement_control.h"
@@ -200,13 +200,7 @@ void MOVEMENT::fwd(bool fwd) {
 		r_r->setSpeed(p3); 
 		r_l->setSpeed(p4); 
 		power.itterate();
-		// Check for collision
-		if (object.ObjectImmediatelyClose()) {
-			emergency_stop();
-		}
-		if (object.ObjectInBufferRange()) {
-			buffer_stop();
-		}
+		// TODO: Check for collision
 		power.end(); 
 		power.MasterSlaveSame(RobotIsSpinning);
 		p2 = power.set_corrected_power(p2, 1);
@@ -236,16 +230,8 @@ void MOVEMENT::fwd(bool fwd) {
 		for (i = 0, j = 0, k = 0, l = 0;
 			i < p1, j < p2, k < p3, l < p4;
 			i++, j++, k++, l++) {
-			// check for collision, this prevents the robot from colliding as its 
+			//  TODO: check for collision, this prevents the robot from colliding as its 
 			// accelerating forward 
-			if (object.ObjectImmediatelyClose()) {
-				emergency_stop();
-				break; 
-			}
-			if (object.ObjectInBufferRange()) {
-				buffer_stop();
-				break;
-			}
 			f_r->setSpeed(i); 
 			f_l->setSpeed(j);
 			r_r->setSpeed(k); 
@@ -355,9 +341,7 @@ void MOVEMENT::buffer_stop() {
 		// Get the current itteraton and slow down gently then stop 
 		int amt = 50;
 		all_run_backward(); 
-		if (object.ObjectImmediatelyClose()) {
-			emergency_stop();
-		}
+		// TODO: Check for collision
 		f_r->setSpeed(i-amt);
 		f_l->setSpeed(j-amt);
 		r_r->setSpeed(k-amt);

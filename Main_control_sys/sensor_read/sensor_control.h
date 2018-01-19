@@ -1,7 +1,7 @@
 /*
  Name:		sensor_control.h
  Created:	11/14/2017 9:18:13 PM
- Author:	Aquiles Gomez
+ Authors:	Aquiles Gomez, Henry Lancelle 
 
  This header file houses the controls for the proximity sensors as well 
  as the wheel encoders. It also contains the class for the object detection 
@@ -20,8 +20,6 @@
 
 
 #include <math.h>
-#include <Adafruit_Sensor.h>
-#include <Wire.h>
 #include "Util.h"
 #include "AbstractSensor.h"
 
@@ -56,10 +54,12 @@ private:
 	double c0;			// These are the calibration values for the senor 
 	double c1;
 	double volt_convert;
+	int readings;
 	int sensor; 
 
-public:
-	void ir_begin(int, int);
+public: 
+	void ir_begin(int, double); 
+
 
 	// Calibrate: 0 if we want to calibrate
 	// 1 if we don't (close), 2 if we don't (far)
@@ -138,32 +138,65 @@ public:
 // manever around obstacles 
 class OBJECT_DETECTION {
 private:
+	
 	// Sensors used for detection 
 	IR_SENSOR far; 
 	IR_SENSOR close; 
 	DIGI_SENSOR fwd; 
 	DIGI_SENSOR bck; 
 
-	bool ObjectIsInFront; 
-	bool ObjectIsBehind;
-	int buffer; 
+	// IR sensor limits 
+	const int far_upper_bound = 550; 
+	const int far_lower_bound = 100;
+	const int close_upper_bound = 120; 
+	const int close_lower_bound = 20; 
+	const int close_blind_spot_limit = 30;
+
+	// Adjust far_read and close_read if we change this value 
+	// See lines 164, 165
+	const int read_number = 3;
+
+	bool ObjectMayBeInBlindspot;
+	bool ObjectInCloseSensorRange; 
+	bool ObjectInFarSensorRange; 
+
+	// Object status 
+	bool ObjectIsLikelyStatic; 
+	bool ObjectIsMovingTowards; 
+	bool ObjectIsMovingAway; 
+
+	// Readings from the sensors are stored here. 
+	int close_read[3];
+	int far_read[3];
+	ARRAY close_analysis;
+	ARRAY far_analysis;
+ 
+	bool SensorOverLapExists(); 
+	bool ObjectInBlindSpot(); 
 
 public: 
-	// Starts object detection: volt  , far, close, fwd, back)
+	// Starts object detection: volt 
 	void configure_object_detection(int);
 
-	// Tells the robot where an object is, assuming it is detected extremely close by 
-	// either the front or rear sensor returns TRUE if there is an object close by 
-	bool ObjectImmediatelyClose(); 
+	// Reports the distance of the closest object and informs the robot 
+	// if it must proceed with caution if there might be an object out of the
+	// detection range (blind spot). 
+	int closest_object_distance();
 
-	// Tells the robot that it should slow its speed down as it is approaching an object 
-	// within range. Returns TRUE if something is approaching the acceptable buffer for 
-	// the robot or if the object is within buffer range
-	bool ObjectInBufferRange();
+	// Reports the speed of the currently detected object and whether it is moving toward 
+	// or away from the robot. Speed is in m/s
+	double detected_object_speed(unsigned long);
 
-	// Returns the nearest object distance
-	int object_distance_close(); 
+	// Object maneuvers
+	bool ObjectApproaching(); 
+	bool ObjectLeaving(); 
+	bool ObjectStatic(); 
 
+	// TODO: Expand on the returns for object yield, (Object Is approaching for
+	// example) 
+	// Returns True if the robot should be cautious due to an object detection
+	// result 
+	bool CautionRequiredDueToObject();
 };
 
 #endif

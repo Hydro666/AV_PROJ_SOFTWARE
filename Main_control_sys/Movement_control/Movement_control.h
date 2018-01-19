@@ -1,7 +1,7 @@
 /*
  Name:		Movement_control.h
  Created:	11/24/2017 8:40:58 PM
- Author:	Aquiles Gomez
+ Author:	Aquiles Gomez, Henry Lancelle
  This library houses the movement control for the robot. 
 */
 
@@ -21,7 +21,6 @@
 #include <sensor_control.h>
 
 // Navigation has a way point, has a direction, has a movement 
-class DIRECTION_OPTIMIZER; 
 class SPEED_CONTROLLER; 
 class MOVEMENT; 
 
@@ -37,8 +36,8 @@ private:
 	ENCODER wheel_4; 
 
 	// value we correct by (only used by the slave motors) 
-	signed int correction_1;
-	signed int correction_2; 
+	int correction_1;
+	int correction_2; 
 	int corrected_power_1;
 	int corrected_power_2; 
 
@@ -96,6 +95,9 @@ public:
 	// Returns the amount the robot has turned in degrees. Rounds up to the nearest
 	// whole number. This is only used during the spin maneuver 
 	int degrees_spun(); 
+
+	// Returns the approximate robot speed 
+	double approximate_robot_speed(); 
 };
 
 // Movement has a motor

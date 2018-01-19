@@ -1,38 +1,81 @@
 /*
  Name:		Util.cpp
  Created:	12/28/2017 3:06:08 PM
- Author:	Aquiles Gomez
+ Author:	Aquiles Gomez, Henry Lancelle
 */
 
 #include "Util.h"
 
-// Returns TRUE if the values are generally decreasing in the array 
-// We compare the number of increases over the number of decreases
-// if the increases are more than the decreases then we return False
-bool ArrayIsDecreasing(double arr[], int n) {
-	// Number of increases 
-	int increases = 0; 
-	// Number of decreases 
-	int decreases = 0; 
+void ARRAY::array_evaluation(int array[], int array_size, int value) {
+	// Initally define the values 
+	increases = 0; 
+	decreases = 0; 
+	moving_towards = 0; 
+	moving_from = 0;
+	array_difference = 0; 
+	buffer_1 = value + 3; 
+	buffer_2 = value - 3; 
 
-	// Itterate over the array, we do not check the first element as we begin there
-	for (int i = 1; i < n; i++) {
-		// Check to see if the next value is larger than the previous 
-		if (arr[i] > arr[i - 1]) {
+	// Itterate over the array and compare the number of decreases and increases 
+	for (int i = 1; i < array_size; i++) {
+		// Check to see if the values are larger or smaller than the previous value 
+		if (array[i] > array[i - 1]) {
 			increases++;
 		}
-		// Check to see if the next value is larger than the previous 
-		if (arr[i] < arr[i - 1]) {
+		if (array[i] < array[i - 1]) {
 			decreases++;
 		}
+		if (array[i] > value) {
+			GreaterThanValue = true; 
+			LowerThanValue = false; 
+		}
+		if (array[i] < value) {
+			LowerThanValue = true;
+			GreaterThanValue = false; 
+		}
+		if (((array[i] < (buffer_1)) && (array[i] >= value)) ||
+			((array[i] > (buffer_2)) && (array[i] <= value))) {
+			moving_towards++; 
+		}
+		else {
+			moving_from++;
+			GreaterThanValue = false;
+			LowerThanValue = false;
+		}
+
+		array_difference += (array[i - 1] - array[i]);
 	}
 
-	// If we have more decreases than increases return true, otherwise
-	// return false. 
-	if (decreases > increases) {
-		return true;
+	// Check to see if array is approaching value 
+	if ((decreases > increases) && (moving_towards > moving_from)) {
+		ArrayIsDecreasingToValue = true; 
+	}
+	if ((increases > decreases) && (moving_towards > moving_from)) {
+		ArrayIsIncreasingToValue = true;
 	}
 	else {
-		return false;
+		ArrayIsDecreasingToValue = false; 
+		ArrayIsIncreasingToValue = false; 
 	}
 }
+
+bool ARRAY::IsArrayIncreasingToValue() {
+	return ArrayIsIncreasingToValue; 
+}
+
+bool ARRAY::IsArrayDecreasingToValue() {
+	return ArrayIsDecreasingToValue;
+}
+
+bool ARRAY::IsGreaterThanValue() {
+	return GreaterThanValue;
+}
+
+bool ARRAY::IsLowerThanValue() {
+	return LowerThanValue;
+}
+
+int ARRAY::total_array_difference() {
+	return array_difference;
+}
+

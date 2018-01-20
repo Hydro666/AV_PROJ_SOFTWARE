@@ -15,42 +15,39 @@
 	#include "WProgram.h"
 #endif
 
-#include "math.h"
-
 class ARRAY {
-private: 
+private:
 	// Values used to evaluate arrays 
-	int increases; 
-	int decreases; 
-	int moving_towards; 
-	int moving_from; 
-	int buffer_1; 
-	int buffer_2; 
+	int increases;
+	int decreases;
+	int moving_towards;
+	int moving_from;
+	int buffer_1;
+	int buffer_2;
 
 	// Accessed by public functions to determine an array's properties 
-	bool ArrayIsDecreasingToValue; 
-	bool ArrayIsIncreasingToValue; 
+	bool ArrayIsDecreasingToValue;
+	bool ArrayIsIncreasingToValue;
 	bool GreaterThanValue;
-	bool LowerThanValue; 
+	bool LowerThanValue;
 
-	int array_difference; 
-public: 
+	int array_difference;
+public:
 	// Takes an array as an input and itterates over the values of the input
 	// array
-	void array_evaluation(int[], int, int); 
-	
+	void array_evaluation(int[], int, int);
+
 	// TODO: Add booleans that return the specified inputs found below
 	// I.E Array is increasesing to value... etc. 
-	bool IsArrayIncreasingToValue(); 
+	bool IsArrayIncreasingToValue();
 
-	bool IsArrayDecreasingToValue(); 
+	bool IsArrayDecreasingToValue();
 
-	bool IsGreaterThanValue(); 
+	bool IsGreaterThanValue();
 
-	bool IsLowerThanValue(); 
+	bool IsLowerThanValue();
 
-	int total_array_difference(); 
-
+	int total_array_difference();
 };
 
 #endif

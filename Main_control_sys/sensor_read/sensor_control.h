@@ -1,7 +1,7 @@
 /*
  Name:		sensor_control.h
  Created:	11/14/2017 9:18:13 PM
- Authors:	Aquiles Gomez, Henry Lancelle 
+ Author:	Aquiles Gomez
 
  This header file houses the controls for the proximity sensors as well 
  as the wheel encoders. It also contains the class for the object detection 
@@ -18,185 +18,122 @@
 	#include "WProgram.h"
 #endif
 
-
+#include <HardwareProperties.h>
 #include <math.h>
 #include "Util.h"
-#include "AbstractSensor.h"
 
-class IR_SENSOR; 
-class DIGI_SENSOR; 
-class ENCODER; 
+class HARDWARE;
+class IR_CALCULATION;
 class OBJECT_DETECTION; 
 
-// Pin loctaions for each sensor: 
-/* 
-	Digital Sensors: 
-		IR-fwd: 44
-		IR- r:  45 
+// Controls all of the sensor reading for the robot. Then returns said values 
+// to be used in other functions
+class HARDWARE {
+	friend class IR_CALCULATION;
+	friend class ENCODER_CALCULATION; 
+private:
+	// Ir sensors values
+	struct analog_values {
+		int IR_FAR;
+		int IR_CLOSE;
+	};
+	struct digital_values {
+		int FRONT;
+		int REAR;
+	};
+	//Encoder values
+	struct encoder_values {
+		int F_R;
+		int F_L;
+		int R_R;
+		int R_L;
+	};
 
-	Analog sensors:
-		IR far = A13
-		IR close = A14
+	double system_voltage;
+	const int read_number = 5;
+	analog_values ir_read;
+	digital_values digi_read;
+	encoder_values encoder_read;
 
-		Encoder 
-			front:
-				left = 30
-				right = 31 
-			back: 
-				left = 32
-				right = 33
-	*/
+	// Returns analog reading, 1 for far, 2 for close
+	int get_analog_reading(int sensor);
+	// Returns digital reading 1 for front, 2 for rear 
+	int get_digital_reading(int sensor);
+	// Returns encoder reading 1 for front right, 2 for front left,
+	// 3 for rear right, 4 for rear left 
+	int get_encoder_result(int sensor);
 
-// Analog sensors control 
-class IR_SENSOR /*: AbstractSensor*/ {
+public:
+	// Starts all the hardware 
+	void Hardware_begin(double voltage);
 
-private: 
-	double c0;			// These are the calibration values for the senor 
-	double c1;
-	double volt_convert;
-	int readings;
-	int sensor; 
-
-public: 
-	void ir_begin(int, double); 
-
-
-	// Calibrate: 0 if we want to calibrate
-	// 1 if we don't (close), 2 if we don't (far)
-	void calibrate(int);
-
-	// Function that obtains the approximate distance from the close range sensor.
-	// We average out from a number of readings to obtain a more consistent result. 
-	// The number of readings can be tweaked to increase performance or to make 
-	// the reading more accurate. Returns current distance value from the close range sensor 
-	int read_close();
-
-	// Function that obtains the approximate distance of the long range sensor. 
-	// We average our readings to obtain a more consistent result. The number 
-	// of readings can be tweaked to increase performance or to make the 
-	// readings more accurate. Returns current distance value from long range sensor
-	int read_far();
+	// Reads all sensor values and notes time of last reading
+	void read_sensor_values();
 
 };
 
-// Digital sensors control
-class DIGI_SENSOR {
+// Interprets the results from ir sensor in the HARDWARE class
+class IR_CALCULATION {
+	friend OBJECT_DETECTION; 
+private:
+	// Returns the calcuated distance from the specified sensor 
+	// 1 for far, 2 for close 
+	int get_distance(HARDWARE& sensor_data, int sensor);
 
-private: 
-	int sensor; 
+	// Returns true if either the front sensor or rear sensor reports an object 
+	bool ObjectImmediatelyClose(HARDWARE& sensor_data, int sensor);
 
-public: 
-	void digi_begin(int); 
-
-	// Checks to see if an object is detected by the very close range sensor
-	// Returns TRUE if an object is detected.
-	bool ObjectIsToClose(); 
 };
 
-// Speed encoders for the motors 
-class ENCODER {
-
-private: 
-	int sensor; 
-	int value;					
-	int tick; 
-	double speed;				// in m/s
-	double distance;			// in meters 
-	double dis_traveled;		// in meters 
-	double wheel_rotations; 
-	double wheel_circumference; // in meters 
-	unsigned long time;			// in seconds
-	unsigned long timeStart;	// in milliseconds
-	unsigned long timeEnd; 
-public: 
-	// Sets up the encoder
-	void encoder_begin(int);
-
-	// Begins the speed counting procedure. This is done at the beginning of each itteration to 
-	// tell the encoder to start reading data. The speed calcualtion is run after each loop. We 
-	// count how long each loop took to determine the robot's current speed
-	void begin_speed_calc();
-
-	// Reads the values from the encoder
-	void read_value(); 
-
-	// Calculates speed and distance 
-	void end_speed_calc();
-
-	// Returns the speed obtained from the encoder in m/s
-	double get_speed(); 
-
-	// Returns the distance traveled in meters 
-	double get_distance(); 
-
-	// Sets the intial values for the encoder. Very useful when we start a new maneuever
-	// and we want to track how much a particular maneuver moves the robot
-	void reset();
-};
-
-// Class that detects obstacles around the robot. This allows the robot to 
-// manever around obstacles 
+// Class that detects obstacles around the robot.
 class OBJECT_DETECTION {
 private:
-	
-	// Sensors used for detection 
-	IR_SENSOR far; 
-	IR_SENSOR close; 
-	DIGI_SENSOR fwd; 
-	DIGI_SENSOR bck; 
-
-	// IR sensor limits 
-	const int far_upper_bound = 550; 
-	const int far_lower_bound = 100;
-	const int close_upper_bound = 120; 
-	const int close_lower_bound = 20; 
-	const int close_blind_spot_limit = 30;
-
-	// Adjust far_read and close_read if we change this value 
-	// See lines 164, 165
-	const int read_number = 3;
-
-	bool ObjectMayBeInBlindspot;
-	bool ObjectInCloseSensorRange; 
-	bool ObjectInFarSensorRange; 
-
-	// Object status 
-	bool ObjectIsLikelyStatic; 
-	bool ObjectIsMovingTowards; 
-	bool ObjectIsMovingAway; 
+	ARRAY close_analysis;
+	ARRAY far_analysis;
 
 	// Readings from the sensors are stored here. 
 	int close_read[3];
 	int far_read[3];
-	ARRAY close_analysis;
-	ARRAY far_analysis;
- 
-	bool SensorOverLapExists(); 
-	bool ObjectInBlindSpot(); 
 
+	// IR sensor limits
+	enum sensor_constants : int {
+		far_upper_bound = 550,
+		far_lower_bound = 100,
+		close_upper_bound = 120,
+		close_lower_bound = 20,
+		close_blind_spot_limit = 30,
+		front = 1, 
+		rear = 2,
+		far = 1,
+		close = 2,
+		rear = 2,
+		read_number = 3
+	};
+
+	// Object Properties 
+	bool ObjectMayBeInBlindspot;
+	bool ObjectInCloseSensorRange;
+	bool ObjectInFarSensorRange;
+
+	bool SensorOverLapExists();
+	bool ObjectInBlindSpot(HARDWARE& sensor_data, IR_CALCULATION& sensor_result);
 public: 
-	// Starts object detection: volt 
-	void configure_object_detection(int);
 
 	// Reports the distance of the closest object and informs the robot 
 	// if it must proceed with caution if there might be an object out of the
 	// detection range (blind spot). 
-	int closest_object_distance();
+	int closest_object_distance(HARDWARE& sensor_data, IR_CALCULATION& sensor_result);
 
 	// Reports the speed of the currently detected object and whether it is moving toward 
 	// or away from the robot. Speed is in m/s
-	double detected_object_speed(unsigned long);
-
-	// Object maneuvers
-	bool ObjectApproaching(); 
-	bool ObjectLeaving(); 
-	bool ObjectStatic(); 
+	double detected_object_speed(unsigned long Time);
 
 	// TODO: Expand on the returns for object yield, (Object Is approaching for
 	// example) 
 	// Returns True if the robot should be cautious due to an object detection
 	// result 
 	bool CautionRequiredDueToObject();
+
 };
 
 #endif

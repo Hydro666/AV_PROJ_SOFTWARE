@@ -1,9 +1,9 @@
 /*
- Name:		Main_control_sys.ino
- Created:	11/24/2017 
- Author:	Aquiles Gomez, Henry Lancelle
- Description: 
-	This file houses all the logic for the autonomous car project. 
+Name:		Main_control_sys.ino
+Created:	11/24/2017
+Author:	Aquiles Gomez, Henry Lancelle
+Description:
+This file houses all the logic for the autonomous car project.
 */
 
 // TODO: Improve memory allocation within all modules

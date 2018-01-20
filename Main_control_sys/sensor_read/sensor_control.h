@@ -1,12 +1,11 @@
 /*
- Name:		sensor_control.h
- Created:	11/14/2017 9:18:13 PM
- Author:	Aquiles Gomez
-
- This header file houses the controls for the proximity sensors as well 
- as the wheel encoders. It also contains the class for the object detection 
- module which is used to determine if there are any objects near the robot
- for which the robot must react. 
+Name:		sensor_control.h
+Created:	11/14/2017 9:18:13 PM
+Author:	Aquiles Gomez, Henry Lancelle
+This header file houses the controls for the proximity sensors as well
+as the wheel encoders. It also contains the class for the object detection
+module which is used to determine if there are any objects near the robot
+for which the robot must react.
 */
 
 #ifndef _sensor_control_h
@@ -82,7 +81,6 @@ private:
 
 	// Returns true if either the front sensor or rear sensor reports an object 
 	bool ObjectImmediatelyClose(HARDWARE& sensor_data, int sensor);
-
 };
 
 // Class that detects obstacles around the robot.
@@ -102,7 +100,7 @@ private:
 		close_upper_bound = 120,
 		close_lower_bound = 20,
 		close_blind_spot_limit = 30,
-		front = 1, 
+		front = 1,
 		rear = 2,
 		far = 1,
 		close = 2,
@@ -117,7 +115,7 @@ private:
 
 	bool SensorOverLapExists();
 	bool ObjectInBlindSpot(HARDWARE& sensor_data, IR_CALCULATION& sensor_result);
-public: 
+public:
 
 	// Reports the distance of the closest object and informs the robot 
 	// if it must proceed with caution if there might be an object out of the

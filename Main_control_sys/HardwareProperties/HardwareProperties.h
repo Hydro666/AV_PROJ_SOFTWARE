@@ -18,16 +18,13 @@
 Digital Sensors:
 IR-fwd: 44
 IR- r:  45
-
 Analog sensors:
 IR far = A13
 IR close = A14
 Encoder
-
 front:
 left = 30
 right = 31
-
 back:
 left = 32
 right = 33
@@ -56,5 +53,3 @@ enum sensor_return : int {
 };
 
 #endif //AV_PROJ_SOFTWARE_HARDWAREPROPERTIES_H
-
-

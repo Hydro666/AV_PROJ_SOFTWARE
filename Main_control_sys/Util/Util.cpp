@@ -1,7 +1,7 @@
 /*
- Name:		Util.cpp
- Created:	12/28/2017 3:06:08 PM
- Author:	Aquiles Gomez, Henry Lancelle
+Name:		Util.cpp
+Created:	12/28/2017 3:06:08 PM
+Author:	Aquiles Gomez, Henry Lancelle
 */
 
 #include "Util.h"

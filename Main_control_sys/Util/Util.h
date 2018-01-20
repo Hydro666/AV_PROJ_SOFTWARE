@@ -1,18 +1,18 @@
 /*
- Name:		Util.h
- Created:	12/28/2017 3:06:08 PM
- Author:	Aquiles Gomez, Henry Lancelle
- This houses utility functions that can be multipurposed. Typically used
- by other libraries
+Name:		Util.h
+Created:	12/28/2017 3:06:08 PM
+Author:	Aquiles Gomez, Henry Lancelle
+This houses utility functions that can be multipurposed. Typically used
+by other libraries
 */
 
 #ifndef _Util_h
 #define _Util_h
 
 #if defined(ARDUINO) && ARDUINO >= 100
-	#include "Arduino.h"
+#include "Arduino.h"
 #else
-	#include "WProgram.h"
+#include "WProgram.h"
 #endif
 
 class ARRAY {
@@ -40,7 +40,7 @@ public:
 	// TODO: Add booleans that return the specified inputs found below
 	// I.E Array is increasesing to value... etc. 
 	bool IsArrayIncreasingToValue();
-
+  
 	bool IsArrayDecreasingToValue();
 
 	bool IsGreaterThanValue();

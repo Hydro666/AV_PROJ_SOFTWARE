@@ -76,22 +76,8 @@ int hardware::get_encoder_result(int sensor) {
 	}
 }
 
-int IR_CALCULATION::get_distance(hardware& sensor_data, int sensor) {
-	double cal_value; 
-	cal_value = sensor_data.get_analog_reading(sensor) 
-		* (sensor_data.system_voltage / 1024); 
-  
-	if (sensor == 1) {
-		// The distance is calcualted from the GP2Y0A710K0F data sheet. Power function with
-		// R^2 == .973 
-		return round((1199.55 * pow(cal_value, -2.833)));
-	}
-	if (sensor == 2) {
-		// The distance is calculated using data points from the GP2Y0A02YK data sheet
-		// This equation relates the distance vs the voltage reading. This is a power function with 
-		// an R^2 value == .9961
-		return round((62.1418 * pow(cal_value, -1.115)));
-	}
+IR_CALCULATION::IR_CALCULATION(hardware::IR_sensor &left, hardware::IR_sensor &right){
+    
 }
 
 bool IR_CALCULATION::ObjectImmediatelyClose(hardware& sensor_data, int sensor) {

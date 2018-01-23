@@ -70,9 +70,14 @@ void read_sensor_values();
 class IR_CALCULATION;
 // Interprets the results from ir sensor in the HARDWARE class
 class IR_CALCULATION {
-    hardware::IR_sensor leftSensor;
-    hardware::IR_sensor rightSensor;
+public:
+    IR_CALCULATION(hardware::IR_sensor& left, hardware::IR_sensor& right);
 private:
+    /** These will be the sensors that correspond to the left and right IR 
+     *  sensor. */
+    hardware::IR_sensor *leftSensor;
+    hardware::IR_sensor *rightSensor;
+    
     // Returns the calculated distance from the specified sensor
     // 1 for far, 2 for close
     int get_distance(HARDWARE &sensor_data, int sensor);

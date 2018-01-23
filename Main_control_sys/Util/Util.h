@@ -25,6 +25,7 @@ private:
 	int buffer_1;
 	int buffer_2;
 
+
 	// Accessed by public functions to determine an array's properties 
 	bool ArrayIsDecreasingToValue;
 	bool ArrayIsIncreasingToValue;

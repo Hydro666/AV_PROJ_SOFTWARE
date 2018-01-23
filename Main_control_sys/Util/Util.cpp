@@ -16,6 +16,7 @@ void ARRAY::array_evaluation(int array[], int array_size, int value) {
 	buffer_1 = value + 3;
 	buffer_2 = value - 3;
 
+
 	// Itterate over the array and compare the number of decreases and increases 
 	for (int i = 1; i < array_size; i++) {
 		// Check to see if the values are larger or smaller than the previous value 

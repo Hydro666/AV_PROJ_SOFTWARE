@@ -6,3 +6,15 @@
 */
 
 #include "HardwareProperties.h"
+
+namespace hardware {
+boolean validPin(HW_pins pin) {
+    switch (pin) {
+        case DirFwd: case DirRev: case AIrFar: case AIrClose:
+        case EncFwdL: case EncFwdR: case EncRearL: case EncRearR:
+            return true;
+        default:
+            return false;
+    }
+}
+} // HARDWARE

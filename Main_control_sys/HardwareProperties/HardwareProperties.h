@@ -30,26 +30,32 @@ left = 32
 right = 33
 */
 
+namespace hardware {
 enum HW_pins : int {
-	DirFwd = 44,
-	DirRev = 45,
-	AIrFar = 13,
-	AIrClose = 14,
-	EncFwdL = 30,
-	EncFwdR = 31,
-	EncRearL = 32,
-	EncRearR = 33
+    DirFwd = 44,
+    DirRev = 45,
+    AIrFar = 13,
+    AIrClose = 14,
+    EncFwdL = 30,
+    EncFwdR = 31,
+    EncRearL = 32,
+    EncRearR = 33,
+    NONE = -1
 };
 
+/** Return true iff pin is a valid pin that can be selected.*/
+boolean validPin(uint8_t pin);
+
 enum sensor_return : int {
-	far = 1,
-	close = 2,
-	front = 1,
-	rear = 2,
-	front_right = 1, 
-	front_left = 2, 
-	rear_right = 3, 
-	rear_left = 4
+    far = 1,
+    close = 2,
+    front = 1,
+    rear = 2,
+    front_right = 1,
+    front_left = 2,
+    rear_right = 3,
+    rear_left = 4
 };
+} // HARDWARE
 
 #endif //AV_PROJ_SOFTWARE_HARDWAREPROPERTIES_H

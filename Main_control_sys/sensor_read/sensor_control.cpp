@@ -6,7 +6,7 @@ Author:	Aquiles Gomez, Henry Lancelle
 
 #include "sensor_control.h"
 
-void HARDWARE::Hardware_begin(double voltage) {
+void hardware::Hardware_begin(double voltage) {
 	// Sets system voltage 
 	system_voltage = voltage;
 
@@ -21,7 +21,7 @@ void HARDWARE::Hardware_begin(double voltage) {
 	pinMode(EncRearR, INPUT);
 }
 
-void HARDWARE::read_sensor_values() {
+void hardware::read_sensor_values() {
 	// Read the two digtial IR sensors
 	digi_read.FRONT = digitalRead(DirFwd);
 	digi_read.REAR = digitalRead(DirRev);
@@ -43,7 +43,7 @@ void HARDWARE::read_sensor_values() {
 	encoder_read.R_R = digitalRead(EncRearR);
 }
 
-int HARDWARE::get_analog_reading(int sensor) {
+int hardware::get_analog_reading(int sensor) {
 	if (sensor == 1) {
 		return ir_read.IR_FAR;
 	}
@@ -52,7 +52,7 @@ int HARDWARE::get_analog_reading(int sensor) {
 	}
 }
 
-int HARDWARE::get_digital_reading(int sensor) {
+int hardware::get_digital_reading(int sensor) {
 	if (sensor == 1) {
 		return digi_read.FRONT;
 	}
@@ -61,7 +61,7 @@ int HARDWARE::get_digital_reading(int sensor) {
 	}
 }
 
-int HARDWARE::get_encoder_result(int sensor) {
+int hardware::get_encoder_result(int sensor) {
 	if (sensor == 1) {
 		return encoder_read.F_R;
 	}
@@ -76,7 +76,7 @@ int HARDWARE::get_encoder_result(int sensor) {
 	}
 }
 
-int IR_CALCULATION::get_distance(HARDWARE& sensor_data, int sensor) {
+int IR_CALCULATION::get_distance(hardware& sensor_data, int sensor) {
 	double cal_value; 
 	cal_value = sensor_data.get_analog_reading(sensor) 
 		* (sensor_data.system_voltage / 1024); 
@@ -94,7 +94,7 @@ int IR_CALCULATION::get_distance(HARDWARE& sensor_data, int sensor) {
 	}
 }
 
-bool IR_CALCULATION::ObjectImmediatelyClose(HARDWARE& sensor_data, int sensor) {
+bool IR_CALCULATION::ObjectImmediatelyClose(hardware& sensor_data, int sensor) {
 	int val;
 	val = sensor_data.get_digital_reading(sensor);
 	if (val == 1) {
@@ -123,7 +123,7 @@ bool OBJECT_DETECTION::SensorOverLapExists() {
 	return true;
 }
 
-bool OBJECT_DETECTION::ObjectInBlindSpot(HARDWARE& sensor_data, IR_CALCULATION& sensor_result) {
+bool OBJECT_DETECTION::ObjectInBlindSpot(hardware& sensor_data, IR_CALCULATION& sensor_result) {
 	// If we read values approaching the lower limit of the close range sensor, we 
 	// inform the robot that there might be an object out of the sensor range and that it 
 	// should proceed with caution. This check only occurs if the values are decreasing
@@ -169,7 +169,7 @@ bool OBJECT_DETECTION::ObjectInBlindSpot(HARDWARE& sensor_data, IR_CALCULATION& 
 
 // TODO: Test implemented methods. Overlap, blind spot logic, most accurate reading and 
 // estimated object maneuver. 
-int OBJECT_DETECTION::closest_object_distance(HARDWARE& sensor_data, 
+int OBJECT_DETECTION::closest_object_distance(hardware& sensor_data,
 	IR_CALCULATION& sensor_result) {
 
 	// Read values from both sensors

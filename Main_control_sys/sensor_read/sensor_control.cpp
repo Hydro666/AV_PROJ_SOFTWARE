@@ -5,22 +5,6 @@ Author:	Aquiles Gomez, Henry Lancelle
 */
 
 #include "sensor_control.h"
-
-void hardware::Hardware_begin(double voltage) {
-	// Sets system voltage 
-	system_voltage = voltage;
-
-	// Set as inputs 
-	pinMode(DirFwd, INPUT); 
-	pinMode(DirRev, INPUT); 
-	pinMode(AIrFar, INPUT); 
-	pinMode(AIrClose, INPUT); 
-	pinMode(EncFwdL, INPUT); 
-	pinMode(EncFwdR, INPUT); 
-	pinMode(EncRearL, INPUT); 
-	pinMode(EncRearR, INPUT);
-}
-
 void hardware::read_sensor_values() {
 	// Read the two digtial IR sensors
 	digi_read.FRONT = digitalRead(DirFwd);
@@ -76,19 +60,10 @@ int hardware::get_encoder_result(int sensor) {
 	}
 }
 
-IR_CALCULATION::IR_CALCULATION(hardware::IR_sensor &left, hardware::IR_sensor &right){
-    
-}
-
-bool IR_CALCULATION::ObjectImmediatelyClose(hardware& sensor_data, int sensor) {
-	int val;
-	val = sensor_data.get_digital_reading(sensor);
-	if (val == 1) {
-		return false;
-	}
-	if (val == 0) {
-		return true;
-	}
+IR_CALCULATION::IR_CALCULATION(
+        hardware::IR_sensor &left, hardware::IR_sensor &right) {
+    leftSensor = &left;
+    rightSensor = &right;
 }
 
 bool OBJECT_DETECTION::SensorOverLapExists() {

@@ -17,4 +17,17 @@ boolean validPin(HW_pins pin) {
             return false;
     }
 }
+
+void Hardware_begin() {
+    // Set as inputs
+    pinMode(DirFwd, INPUT);
+    pinMode(DirRev, INPUT);
+    pinMode(AIrFar, INPUT);
+    pinMode(AIrClose, INPUT);
+    pinMode(EncFwdL, INPUT);
+    pinMode(EncFwdR, INPUT);
+    pinMode(EncRearL, INPUT);
+    pinMode(EncRearR, INPUT);
+}
+
 } // HARDWARE

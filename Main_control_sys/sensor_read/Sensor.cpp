@@ -15,20 +15,11 @@ boolean AbstractSensor::attach(HW_pins input) {
     }
 }
 
-float AbstractSensor::averageRead(short int num, short int offset) {
-    int total = 0;
-    for (short int i = num; i > 0; --i) {
-        delay(offset);
-        total += read();
-    }
-    return (total + 0.0) / num; // The addend of 0.0 is so that true division will be performed and not truncated division.
-}
-
-int IR_sensor::read() {
+int AnalogSensor::read() {
     return analogRead(pin);
 }
 
-int Digi_sensor::read() {
+int DigiSensor::read() {
     return digitalRead(pin);
 }
 } // HARDWARE

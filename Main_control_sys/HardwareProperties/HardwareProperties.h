@@ -31,7 +31,10 @@ right = 33
 */
 
 namespace hardware {
-enum HW_pins : int {
+
+/** Each pin name corresponds to the physical pin number that the hardware
+ *  component is plugged into. */
+enum HW_pins : uint8_t {
     DirFwd = 44,
     DirRev = 45,
     AIrFar = 13,
@@ -46,16 +49,33 @@ enum HW_pins : int {
 /** Return true iff pin is a valid pin that can be selected.*/
 boolean validPin(uint8_t pin);
 
-enum sensor_return : int {
-    far = 1,
-    close = 2,
-    front = 1,
-    rear = 2,
-    front_right = 1,
-    front_left = 2,
-    rear_right = 3,
-    rear_left = 4
+/** An type corresponding to eight directions similar to a compass.*/
+enum CardinalDirection {
+    front,
+    left,
+    right,
+    rear,
+    frontLeft,
+    frontRight,
+    rearLeft,
+    rearRight
 };
+
+/** Type that enumerates the distances CLOSE and FAR.*/
+enum Distance {
+    close,
+    far
+};
+
+/** This interface will be implemented by every hardware component that can be
+ *  plugged into some pin in the arduino board.*/
+class Pluggable {
+    virtual boolean attach(HW_pins pin)=0;
+};
+
+// Starts all the hardware
+void Hardware_begin(double voltage);
+
 } // HARDWARE
 
 #endif //AV_PROJ_SOFTWARE_HARDWAREPROPERTIES_H

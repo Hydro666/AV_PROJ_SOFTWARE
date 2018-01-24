@@ -17,8 +17,9 @@ for which the robot must react.
     #include "WProgram.h"
 #endif
 
-#include <HardwareProperties.h>
 #include <math.h>
+
+#include "HardwareProperties.h"
 #include "Util.h"
 #include "Sensor.h"
 
@@ -59,9 +60,6 @@ int get_digital_reading(int sensor);
 // 3 for rear right, 4 for rear left
 int get_encoder_result(int sensor);
 
-// Starts all the hardware
-void Hardware_begin(double voltage);
-
 // Reads all sensor values and notes time of last reading
 void read_sensor_values();
 
@@ -73,11 +71,11 @@ class IR_CALCULATION {
 public:
     IR_CALCULATION(hardware::IR_sensor& left, hardware::IR_sensor& right);
 private:
-    /** These will be the sensors that correspond to the left and right IR 
+    /** These will be the sensors that correspond to the left and right IR
      *  sensor. */
     hardware::IR_sensor *leftSensor;
     hardware::IR_sensor *rightSensor;
-    
+
     // Returns the calculated distance from the specified sensor
     // 1 for far, 2 for close
     int get_distance(HARDWARE &sensor_data, int sensor);

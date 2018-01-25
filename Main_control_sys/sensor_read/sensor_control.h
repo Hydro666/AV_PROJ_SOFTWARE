@@ -18,6 +18,8 @@ for which the robot must react.
 #endif
 
 #include <math.h>
+#include <deque>
+#include <map>
 
 #include "HardwareProperties.h"
 #include "Util.h"
@@ -25,43 +27,52 @@ for which the robot must react.
 
 namespace hardware {
 
-// Controls all of the sensor reading for the robot. Then returns said values 
-// to be used in other functions
-// Ir sensors values
-struct analog_values {
-    int IR_FAR;
-    int IR_CLOSE;
+/** This class will control reading and timing of reads from the pluggable
+ *  hardware components. Some reads will be stored, and when the values of
+ *  reads is requested by a client, the average of the stored reads will be
+ *  sent to the client class.*/
+class SensorControl {
+    /* Storage of values will be implemented by deques. This way we can only
+     * store values up to a certain size and then easily discard the oldest
+     * value currently stored.*/
+
+    /** Storage of reads from the AnalogSensors.*/
+    struct analog_values {
+        std::deque<int> *irFar;
+        std::deque<int> *IR_CLOSE;
+    } irRead;
+    struct digital_values {
+        std::deque<int> *FRONT;
+        std::deque<int> *REAR;
+    } digiRead;
+    //Encoder values
+    struct encoder_values {
+        std::deque<int> *F_R;
+        std::deque<int> *F_L;
+        std::deque<int> *R_R;
+        std::deque<int> *R_L;
+    } encoderRead;
+
+    // Returns analog reading, 1 for far, 2 for close
+    int get_analog_reading(int sensor);
+
+    // Returns digital reading 1 for front, 2 for rear
+    int get_digital_reading(int sensor);
+
+    // Returns encoder reading 1 for front right, 2 for front left,
+    // 3 for rear right, 4 for rear left
+    int get_encoder_result(int sensor);
+
+    // Reads all sensor values and notes time of last reading
+    void read_sensor_values();
+
+
+    double system_voltage;
+
+    /** The maximum number of stored values for each individual sensor plugged
+     *  into the arduino board. */
+    const int maxStorage = 5;
 };
-struct digital_values {
-    int FRONT;
-    int REAR;
-};
-//Encoder values
-struct encoder_values {
-    int F_R;
-    int F_L;
-    int R_R;
-    int R_L;
-};
-
-double system_voltage;
-const int read_number = 5;
-analog_values ir_read;
-digital_values digi_read;
-encoder_values encoder_read;
-
-// Returns analog reading, 1 for far, 2 for close
-int get_analog_reading(int sensor);
-
-// Returns digital reading 1 for front, 2 for rear
-int get_digital_reading(int sensor);
-
-// Returns encoder reading 1 for front right, 2 for front left,
-// 3 for rear right, 4 for rear left
-int get_encoder_result(int sensor);
-
-// Reads all sensor values and notes time of last reading
-void read_sensor_values();
 
 } // Namespace HARDWARE
 
@@ -69,12 +80,13 @@ class IR_CALCULATION;
 // Interprets the results from ir sensor in the HARDWARE class
 class IR_CALCULATION {
 public:
-    IR_CALCULATION(hardware::IR_sensor& left, hardware::IR_sensor& right);
+    IR_CALCULATION(hardware::AnalogSensor& left, hardware::AnalogSensor& right);
 private:
     /** These will be the sensors that correspond to the left and right IR
      *  sensor. */
-    hardware::IR_sensor *leftSensor;
-    hardware::IR_sensor *rightSensor;
+    hardware::AnalogSensor *leftSensor;
+    hardware::AnalogSensor *rightSensor;
+    std::map<hardware::CardinalDirection, hardware::Encoder> encoders;
 
     // Returns the calculated distance from the specified sensor
     // 1 for far, 2 for close

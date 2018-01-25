@@ -2,6 +2,7 @@
 // Created by henry on 1/7/18.
 //
 
+#include <stdexcept>
 #include "Sensor.h"
 
 namespace hardware {
@@ -21,6 +22,10 @@ int AnalogSensor::read() {
 
 int DigiSensor::read() {
     return digitalRead(pin);
+}
+
+int Encoder::read() {
+    throw std::runtime_error("Encoder is not yet supported.");
 }
 } // HARDWARE
 

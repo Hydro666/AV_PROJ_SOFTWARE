@@ -36,5 +36,9 @@ class DigiSensor : AbstractSensor {
     int read() override;
 };
 
+class Encoder : AbstractSensor {
+    int read() override;
+};
+
 } // HARDWARE
 #endif //AV_PROJ_SOFTWARE_ABSTRACTSENSOR_H

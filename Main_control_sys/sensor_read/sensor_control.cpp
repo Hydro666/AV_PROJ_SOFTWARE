@@ -5,60 +5,108 @@ Author:	Aquiles Gomez, Henry Lancelle
 */
 
 #include "sensor_control.h"
-void hardware::read_sensor_values() {
-	// Read the two digtial IR sensors
-	digi_read.FRONT = digitalRead(DirFwd);
-	digi_read.REAR = digitalRead(DirRev);
 
-	// Read analog sensors
-	ir_read.IR_FAR = 0;
-	ir_read.IR_CLOSE = 0;
-	for (int ii = 0; ii < read_number; ii++) {
-		ir_read.IR_FAR += analogRead(AIrFar);
-		ir_read.IR_CLOSE += analogRead(AIrClose);
-	}
-	ir_read.IR_FAR = ir_read.IR_FAR / read_number;
-	ir_read.IR_CLOSE = ir_read.IR_CLOSE / read_number;
+namespace hardware {
+SensorControl::SensorControl(
+        AnalogSensor &far, AnalogSensor &close,
+        DigiSensor &digiFront, DigiSensor &digiRear,
+        Encoder &frontLeft, Encoder &frontRight,
+        Encoder &rearLeft, Encoder &rearRight,
+        int size) {
 
-	// Read all the encoder sensors and store their values  
-	encoder_read.F_L = digitalRead(EncFwdL);
-	encoder_read.F_R = digitalRead(EncFwdR);
-	encoder_read.R_L = digitalRead(EncRearL);
-	encoder_read.R_R = digitalRead(EncRearR);
+    irRead.irFar = new SensorValueStorage(far, size);
+    irRead.irClose = new SensorValueStorage(close, size);
+
+    digiRead.digiFront = new SensorValueStorage(digiFront, size);
+    digiRead.digiRear = new SensorValueStorage(digiRear, size);
+
+    encoderRead.frontLeft = new SensorValueStorage(frontLeft, size);
+    encoderRead.frontRight = new SensorValueStorage(frontRight, size);
+    encoderRead.rearLeft = new SensorValueStorage(rearLeft, size);
+    encoderRead.rearRight = new SensorValueStorage(rearRight, size);
 }
 
-int hardware::get_analog_reading(int sensor) {
-	if (sensor == 1) {
-		return ir_read.IR_FAR;
-	}
-	if (sensor == 2) {
-		return ir_read.IR_CLOSE;
-	}
+SensorControl::SensorValueStorage::SensorValueStorage(Sensor &s, int size) {
+    this->s = &s;
+    stored = new FiniteQueue(size);
 }
 
-int hardware::get_digital_reading(int sensor) {
-	if (sensor == 1) {
-		return digi_read.FRONT;
-	}
-	if (sensor == 2) {
-		return digi_read.REAR;
-	}
+SensorControl::SensorValueStorage::~SensorValueStorage() {
+    delete *stored;
+    delete stored;
 }
 
-int hardware::get_encoder_result(int sensor) {
-	if (sensor == 1) {
-		return encoder_read.F_R;
-	}
-	if (sensor == 2) {
-		return encoder_read.F_L;
-	}
-	if (sensor == 3) {
-		return encoder_read.R_R;
-	}
-	if (sensor == 4) {
-		return encoder_read.R_L;
-	}
+int SensorControl::SensorValueStorage::read() {
+    int read = s->read();
+    stored->add(read);
+    return read;
 }
+
+double SensorControl::SensorValueStorage::averageValue() {
+
+    int tot = 0;
+    for (FiniteQueue::iterator it = stored->begin();
+         it != stored->end(); it++) {
+        tot += *it;
+    }
+    return double(tot) / stored->getMaxSize();
+}
+
+void SensorControl::read_sensor_values() {
+    // Read the two digtial IR sensors
+    digi_read.FRONT = digitalRead(DirFwd);
+    digi_read.REAR = digitalRead(DirRev);
+
+    // Read analog sensors
+    ir_read.IR_FAR = 0;
+    ir_read.IR_CLOSE = 0;
+    for (int ii = 0; ii < read_number; ii++) {
+        ir_read.IR_FAR += analogRead(AIrFar);
+        ir_read.IR_CLOSE += analogRead(AIrClose);
+    }
+    ir_read.IR_FAR = ir_read.IR_FAR / read_number;
+    ir_read.IR_CLOSE = ir_read.IR_CLOSE / read_number;
+
+    // Read all the encoder sensors and store their values
+    encoder_read.F_L = digitalRead(EncFwdL);
+    encoder_read.F_R = digitalRead(EncFwdR);
+    encoder_read.R_L = digitalRead(EncRearL);
+    encoder_read.R_R = digitalRead(EncRearR);
+}
+
+int SensorControl::get_analog_reading() {
+    if (sensor == 1) {
+        return ir_read.IR_FAR;
+    }
+    if (sensor == 2) {
+        return ir_read.IR_CLOSE;
+    }
+}
+
+int SensorControl::get_digital_reading(int sensor) {
+    if (sensor == 1) {
+        return digi_read.FRONT;
+    }
+    if (sensor == 2) {
+        return digi_read.REAR;
+    }
+}
+
+int SensorControl::get_encoder_result(int sensor) {
+    if (sensor == 1) {
+        return encoder_read.F_R;
+    }
+    if (sensor == 2) {
+        return encoder_read.F_L;
+    }
+    if (sensor == 3) {
+        return encoder_read.R_R;
+    }
+    if (sensor == 4) {
+        return encoder_read.R_L;
+    }
+}
+} // hardware
 
 IR_CALCULATION::IR_CALCULATION(
         hardware::IR_sensor &left, hardware::IR_sensor &right) {

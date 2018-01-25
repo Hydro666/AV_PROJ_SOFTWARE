@@ -12,6 +12,9 @@ by other libraries
 #if defined(ARDUINO) && ARDUINO >= 100
 #include "Arduino.h"
 #else
+
+#include <queue>
+#include <stdexcept>
 #include "WProgram.h"
 #endif
 
@@ -49,6 +52,33 @@ public:
 	bool IsLowerThanValue();
 
 	int total_array_difference();
+};
+
+/** This is a container that can contain at most SIZE number of items.  If the
+ *  maximum capacity has been reached, then the next element added to this
+ *  container will remove the oldest element.*/
+template <class T>
+class FiniteQueue : std::deque {
+private:
+    int maxSize;
+
+public:
+    FiniteQueue(int size) {
+        maxSize = size;
+    }
+
+    void add(T item) {
+        if (size() > maxSize) {
+            throw std::runtime_error("The size of the queue is larger than the maximum allowable!");
+        } else if (size() == maxSize) {
+            pop_back();
+        }
+        push_front(item);
+    }
+
+    int getMaxSize() {
+        return maxSize;
+    }
 };
 
 #endif

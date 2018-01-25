@@ -14,10 +14,10 @@ namespace hardware {
 /** This will be the base class that the Analog and Digital sensors will extend
  *  off of. It will read voltaget from the pin that it is attached to with the
  *  read  method. */
-class AbstractSensor : Pluggable {
+class Sensor : public Pluggable {
 protected:
     /** This is the pin number that this sensor will read data from. */
-    uint8_t pin = NONE;
+    HW_pins pin = NONE;
 
 public:
     /** This will return the value read from PIN. */
@@ -25,18 +25,19 @@ public:
 
     /** Associate this IR sensor with pin INPUT. Returns true iff the pin is
      *  a valid pin*/
-    boolean attach(HW_pins input) override;
+    boolean attach(HW_pins input);
 };
 
-class AnalogSensor : AbstractSensor {
+class AnalogSensor : public Sensor {
+public:
     int read() override;
 };
 
-class DigiSensor : AbstractSensor {
+class DigiSensor : public Sensor {
     int read() override;
 };
 
-class Encoder : AbstractSensor {
+class Encoder : public Sensor {
     int read() override;
 };
 

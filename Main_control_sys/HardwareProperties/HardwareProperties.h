@@ -50,7 +50,7 @@ enum HW_pins : uint8_t {
 boolean validPin(uint8_t pin);
 
 /** An type corresponding to eight directions similar to a compass.*/
-enum CardinalDirection {
+enum struct CardinalDirection {
     front,
     left,
     right,

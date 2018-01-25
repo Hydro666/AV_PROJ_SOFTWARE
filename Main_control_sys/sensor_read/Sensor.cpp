@@ -7,7 +7,7 @@
 
 namespace hardware {
 
-boolean AbstractSensor::attach(HW_pins input) {
+boolean Sensor::attach(HW_pins input) {
     if (!validPin(input)) {
         return false;
     } else {

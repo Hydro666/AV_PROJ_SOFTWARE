@@ -18,15 +18,14 @@ for which the robot must react.
 #endif
 
 #include <math.h>
-#include <deque>
 #include <map>
 
 #include "HardwareProperties.h"
 #include "Util.h"
 #include "Sensor.h"
 
-namespace hardware {
 
+namespace hardware {
 /** This class will control reading and timing of reads from the pluggable
  *  hardware components. Some reads will be stored, and when the values of
  *  reads is requested by a client, the average of the stored reads will be
@@ -36,25 +35,58 @@ class SensorControl {
      * store values up to a certain size and then easily discard the oldest
      * value currently stored.*/
 
+private:
+
+    /** Holds a finite number of most recent reads from a hardware sensor.*/
+    class SensorValueStorage {
+    public:
+        /** Create an instance of this storage object that will store SIZE
+         *  values before the oldest values are overwritten.*/
+        SensorValueStorage(Sensor &sensor, int size);
+        ~SensorValueStorage();
+
+    private:
+        /** Reads and stores a value from the associated sensor and return the
+         *  read value. */
+        int read();
+
+        /** Returns the average of the currently stored data.*/
+        double averageValue();
+
+        Sensor *s;
+        FiniteQueue<int> *stored;
+    };
+
     /** Storage of reads from the AnalogSensors.*/
-    struct analog_values {
-        std::deque<int> *irFar;
-        std::deque<int> *IR_CLOSE;
+    struct AnalogValues {
+        SensorValueStorage *irFar;
+        SensorValueStorage *irClose;
     } irRead;
-    struct digital_values {
-        std::deque<int> *FRONT;
-        std::deque<int> *REAR;
+    struct DigitalValues {
+        SensorValueStorage *digiFront;
+        SensorValueStorage *digiRear;
     } digiRead;
     //Encoder values
-    struct encoder_values {
-        std::deque<int> *F_R;
-        std::deque<int> *F_L;
-        std::deque<int> *R_R;
-        std::deque<int> *R_L;
+    struct EncoderValues {
+        SensorValueStorage *frontLeft;
+        SensorValueStorage *frontRight;
+        SensorValueStorage *rearLeft;
+        SensorValueStorage *rearRight;
     } encoderRead;
 
-    // Returns analog reading, 1 for far, 2 for close
-    int get_analog_reading(int sensor);
+public:
+
+    /** Initializer for the sensor controller.*/
+    SensorControl(
+            AnalogSensor &far, AnalogSensor &close,
+            DigiSensor &digiFront, DigiSensor &digiRear,
+            Encoder &frontLeft, Encoder &frontRight,
+            Encoder &rearLeft, Encoder &rearRight,
+            int size
+    );
+
+    /** Reads into all of the analog sensors. */
+    int getAnalogReading();
 
     // Returns digital reading 1 for front, 2 for rear
     int get_digital_reading(int sensor);
@@ -82,11 +114,6 @@ class IR_CALCULATION {
 public:
     IR_CALCULATION(hardware::AnalogSensor& left, hardware::AnalogSensor& right);
 private:
-    /** These will be the sensors that correspond to the left and right IR
-     *  sensor. */
-    hardware::AnalogSensor *leftSensor;
-    hardware::AnalogSensor *rightSensor;
-    std::map<hardware::CardinalDirection, hardware::Encoder> encoders;
 
     // Returns the calculated distance from the specified sensor
     // 1 for far, 2 for close
